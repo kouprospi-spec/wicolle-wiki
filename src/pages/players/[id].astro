@@ -307,4 +307,54 @@ const statusData = [
   .pos-badge.sub.df  { background-color: #ebf5fb; color: #2980b9; border: 1px solid #a9dfbf; }
   .pos-badge.main.gk { background-color: #f1c40f; color: #000000; border: 1px solid #d4ac0d; }
   .pos-badge.sub.gk  { background-color: #fef9e7; color: #b7950b; border: 1px solid #f9e79f; }
+
+    /* 📱 スマホ画面（画面幅768px以下）で選手詳細ページを100%最適化する設定 */
+  @media (max-width: 768px) {
+    /* 1. 横並びのレイアウトを縦並びに安全に切り替える */
+    .profile-flex-container {
+      flex-direction: column !important;
+      align-items: center !important; /* カード画像を中央配置にする */
+      gap: 20px !important;
+    }
+
+    /* 2. 拡大対応したカード画像ボックスをスマホ画面でも窮屈にさせない設定 */
+    .player-card-box {
+      width: 100% !important;
+      max-width: 260px !important; /* スマホで一番美しく大迫力に見える横幅 */
+      height: 450px !important; /* 比率を維持したまま高さを自動拡張 */
+    }
+
+    /* 3. 基本情報テーブルの横幅をスマホ画面いっぱいに広げる */
+    .status-table,
+    .status-table-bottom,
+    .param-table {
+      width: 100% !important;
+      display: table !important;
+    }
+
+    /* 4. テーブル内の文字とはみ出しの防御設定 */
+    .status-table th, 
+    .status-table td,
+    .status-table-bottom th,
+    .status-table-bottom td {
+      padding: 10px 12px !important;
+      font-size: 0.88rem !important;
+      white-space: normal !important;
+      word-break: break-all !important;
+    }
+
+    /* テーブルの左側見出しセルの幅をスマホ用に少し狭めて調整 */
+    .status-table th,
+    .status-table-bottom th {
+      width: 35% !important;
+    }
+
+    /* 5. ポップアップ吹き出しが画面外に飛び出さないための調整 */
+    .skill-popover-box {
+      width: 90% !important;
+      max-width: 300px !important;
+      left: 5% !important;
+    }
+  }
+
 </style>
