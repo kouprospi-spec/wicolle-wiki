@@ -1,0 +1,105 @@
+---
+// src/layouts/BaseLayout.astro
+interface Props {
+  pageTitle: string;
+}
+
+const { pageTitle } = Astro.props;
+---
+
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{pageTitle}</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f4f6f7; color: #333; line-height: 1.6;">
+
+    {/* 🌐 共通トップヘッダー */}
+    <header style="background-color: #111e25; color: #ffffff; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-bottom: 3px solid #00bfa5;">
+      <div>
+        <h1 style="margin: 0; font-size: 1.4rem; font-weight: bold; letter-spacing: 0.5px;">
+          <a href="/" style="color: #ffffff; text-decoration: none;">ウイコレ攻略wiki</a>
+        </h1>
+      </div>
+      
+      {/* 💡 新設：ヘッダー右側のご意見・ご要望連絡先リンク */}
+      <div style="display: flex; align-items: center;">
+        <a 
+          href="https://docs.google.com/forms/d/e/1FAIpQLSdAWA9imabHBhJ_yq3VWGiiqSrDMwwPbCSEhlPA73v52T-zEQ/viewform?usp=publish-editor" 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          class="header-contact-link"
+          style="color: #00bfa5; background-color: rgba(0, 191, 165, 0.1); border: 1px solid #00bfa5; padding: 6px 14px; border-radius: 4px; font-size: 0.85rem; font-weight: bold; text-decoration: none; transition: all 0.2s; display: flex; align-items: center; gap: 6px;"
+        >
+          <span>📩 ご意見・ご要望はこちら</span>
+        </a>
+      </div>
+    </header>
+
+    {/* 🗂️ 2カラムレイアウト（左メニュー ＆ 右メインコンテンツ） */}
+    <div style="display: flex; max-width: 1200px; margin: 25px auto; padding: 0 20px; gap: 25px; align-items: flex-start;">
+      
+      {/* 📌 左側サイドナビゲーションメニュー */}
+      <nav style="width: 220px; background-color: #ffffff; border: 1px solid #e1e4e6; border-radius: 6px; padding: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); flex-shrink: 0;">
+        <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 5px;">
+          <li>
+            <a href="/" id="nav-home" class="sidebar-link">🏠 選手一覧</a>
+          </li>
+          <li>
+            <a href="/gacha-info" id="nav-gacha" class="sidebar-link">🎯 開催中ガチャ</a>
+          </li>
+          <li>
+            <a href="/schedule" id="nav-schedule" class="sidebar-link">📅 スケジュール</a>
+          </li>
+        </ul>
+      </nav>
+
+      {/* 📝 右側メインコンテンツエリア */}
+      <main style="flex: 1; background-color: #ffffff; border: 1px solid #e1e4e6; border-radius: 6px; padding: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); min-width: 0;">
+        <slot />
+      </main>
+
+    </div>
+
+    {/* 👣 共通フッター */}
+    <footer style="text-align: center; padding: 25px; color: #888888; font-size: 0.85rem; border-top: 1px solid #e1e4e6; background-color: #ffffff; margin-top: 50px;">
+      <p style="margin: 0;">© 2026 ウイコレ攻略wiki All Rights Reserved.</p>
+    </footer>
+
+  </body>
+</html>
+
+<style is:global>
+  /* 🔘 サイドバーリンクの共通マウスホバー装飾 */
+  .sidebar-link {
+    display: block;
+    padding: 10px 12px;
+    color: #475569;
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 500;
+    border-radius: 4px;
+    transition: background-color 0.15s, color 0.15s;
+  }
+  .sidebar-link:hover {
+    background-color: #f1f5f9;
+    color: #00bfa5;
+  }
+  
+  /* 左メニューで現在開いているページの文字をガチッと太字＆アクティブカラーにする設定 */
+  .sidebar-link.active {
+    background-color: #e6f9f6;
+    color: #00bfa5;
+    font-weight: bold;
+  }
+
+  /* 💡 新設：ヘッダーの要望連絡先ボタンのホバー演出 */
+  .header-contact-link:hover {
+    background-color: #00bfa5 !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 6px rgba(0, 191, 165, 0.3);
+  }
+</style>

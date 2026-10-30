@@ -1,0 +1,290 @@
+---
+// src/pages/index.astro (完全版・要素並び替え＆18種ソート完全統合)
+import BaseLayout from '../layouts/BaseLayout.astro';
+import players from '../data/players.json';
+
+// ⚽ ポジションバッジ用のカラー判定
+function getPositionCategory(pos) {
+  if (!pos) return "";
+  const p = pos.toUpperCase();
+  if (["CF", "ST", "LWG", "RWG", "FW"].includes(p)) return "fw";
+  if (["OMF", "CMF", "LMF", "RMF", "DMF", "RSH", "LSH", "MF"].includes(p)) return "mf";
+  if (["CB", "RSB", "LSB", "DF"].includes(p)) return "df";
+  if (["GK"].includes(p)) return "gk";
+  return "";
+}
+---
+
+<BaseLayout pageTitle="ウイコレ攻略wiki | 選手一覧データベース">
+  <h2 style="font-size: 1.3rem; border-left: 5px solid #00bfa5; padding-left: 12px; margin: 0 0 20px 0; color: #111;">選手一覧</h2>
+  
+  {/* 🔍 マルチ検索 ＆ 18種高機能ソートコントロールパネル */}
+  <div style="display: flex; gap: 15px; margin-bottom: 20px; background-color: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; flex-wrap: wrap; align-items: center;">
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">絞り込み:</label>
+      <select id="filter-type" style="padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.9rem; background-color: #fff; cursor: pointer; font-weight: bold;">
+        <option value="all">絞り込み</option>
+        <option value="pos">ポジション</option>
+        <option value="type">タイプ</option>
+        <option value="cardType">シリーズ</option>
+        <option value="country">国・所属</option>
+        <option value="skill">所持スキル</option>
+      </select>
+    </div>
+
+    <div id="filter-condition-container" style="display: flex; align-items: center; gap: 8px;">
+      <span id="cond-default-msg" style="font-size: 0.85rem; color: #888;">項目を選択してください</span>
+      <select id="cond-pos" style="display: none; padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.9rem; background-color: #fff; font-weight: bold;">
+        <option value="fw">FW</option>
+        <option value="mf">MF</option>
+        <option value="df">DF</option>
+        <option value="gk">GK</option>
+      </select>
+      <select id="cond-type" style="display: none; padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.9rem; background-color: #fff; font-weight: bold;">
+        <option value="テクニック">テクニック</option>
+        <option value="パワー">パワー</option>
+        <option value="スピード">スピード</option>
+        <option value="スタミナ">スタミナ</option>
+        <option value="バランス">バランス</option>
+      </select>
+      <select id="cond-cardtype" style="display: none; padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.9rem; background-color: #fff; font-weight: bold;">
+        <option value="レギュラー">レギュラー</option>
+        <option value="ナショナル">ナショナル</option>
+        <option value="レジェンド">レジェンド</option>
+        <option value="エターナル">エターナル</option>
+      </select>
+      <input id="cond-keyword" type="text" placeholder="キーワードを入力..." style="display: none; padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.9rem; width: 180px;" />
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 8px; margin-left: auto;">
+      <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">並び替え:</label>
+      <select id="sort-order" style="padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.9rem; background-color: #fff; cursor: pointer; font-weight: bold;">
+        <option value="grade-desc">グレードが高い順</option>
+        <option value="grade-asc">グレードが低い順</option>
+        <option value="total-desc">総合力が高い順</option>
+        <option value="total-asc">総合力が低い順</option>
+        <option value="ofe-desc">オフェンスが高い順</option>
+        <option value="ofe-asc">オフェンスが低い順</option>
+        <option value="tec-desc">テクニックが高い順</option>
+        <option value="tec-asc">テクニックが低い順</option>
+        <option value="sta-desc">スタミナが高い順</option>
+        <option value="sta-asc">スタミナが低い順</option>
+        <option value="def-desc">ディフェンスが高い順</option>
+        <option value="def-asc">ディフェンスが低い順</option>
+        <option value="pow-desc">パワーが高い順</option>
+        <option value="pow-asc">パワーが低い順</option>
+        <option value="spd-desc">スピードが高い順</option>
+        <option value="spd-asc">スピードが低い順</option>
+        <option value="birth-asc">生年月日が早い順 (年長)</option>
+        <option value="birth-desc">生年月日が遅い順 (若手)</option>
+      </select>
+    </div>
+  </div>
+  
+  {/* 📋 選手リストコンテナ */}
+  <div id="player-list-wrapper" style="border: 1px solid #e1e4e6; border-radius: 8px; overflow: hidden; background-color: #ffffff;">
+    {players.map((player) => {
+      let rowStyle = "display: flex; align-items: center; padding: 14px 20px; flex-wrap: wrap; gap: 15px; transition: opacity 0.2s; border-bottom: 1px solid #e1e4e6;";
+      
+      const firstPos = player.positionsMain && player.positionsMain.length > 0 ? player.positionsMain[0].toUpperCase() : "";
+      let pColor = "";
+      if (["CF", "ST", "LWG", "RWG", "FW"].includes(firstPos)) pColor = "bg-fw";
+      if (["OMF", "CMF", "LMF", "RMF", "DMF", "RSH", "LSH", "MF"].includes(firstPos)) pColor = "bg-mf";
+      if (["CB", "RSB", "LSB", "DF"].includes(firstPos)) pColor = "bg-df";
+      if (["GK"].includes(firstPos)) pColor = "bg-gk";
+
+      if (pColor === "bg-fw") rowStyle += " background-color: #fff5f5; border-bottom-color: #fbc4c4;"; 
+      if (pColor === "bg-mf") rowStyle += " background-color: #f4fbf7; border-bottom-color: #c2ecd7;"; 
+      if (pColor === "bg-df") rowStyle += " background-color: #f4f9fd; border-bottom-color: #c9e3f6;"; 
+      if (pColor === "bg-gk") rowStyle += " background-color: #fffdf2; border-bottom-color: #f9f0c2;"; 
+
+      const firstPosCat = getPositionCategory(firstPos);
+      const allSkills = [...(player.specialSkills || []), ...(player.selectSkills || [])].join(',');
+
+      const k = player.status && player.status.kira_lv80 ? player.status.kira_lv80 : {};
+      const ofe = Number(k.ofe) || 0;
+      const tec = Number(k.tec) || 0;
+      const sta = Number(k.sta) || 0;
+      const def = Number(k.def) || 0;
+      const pow = Number(k.pow) || 0;
+      const spd = Number(k.spd) || 0;
+      const total = ofe + tec + sta + def + pow + spd;
+      const birth = player.birth || "";
+
+      return (
+        <a 
+          href={`/players/${player.id}`} 
+          class="player-list-item" 
+          data-grade={player.grade} 
+          data-pos={firstPosCat} 
+          data-type={player.type} 
+          data-skills={allSkills} 
+          data-country={player.country} 
+          data-cardtype={player.cardType}
+          data-birth={birth}
+          data-total={total}
+          data-ofe={ofe} data-tec={tec} data-sta={sta} data-def={def} data-pow={pow} data-spd={spd}
+          style="text-decoration: none; color: inherit; display: block;"
+        >
+          <div style={rowStyle}>
+            {/* ① グレード表記 */}
+            <span style="background-color: #f39c12; color: #ffffff; font-weight: bold; font-size: 0.85rem; padding: 3px 8px; border-radius: 4px; min-width: 45px; text-align: center;">
+              {player.grade}
+            </span>
+            
+            {/* ② 名前 */}
+            <h3 style="font-size: 1.05rem; font-weight: bold; color: #0073e6; margin: 0;">{player.name}</h3>
+            
+            {/* ③ シリーズ（カードタイプ） */}
+            <span style="font-size: 0.8rem; color: #888888;">({player.cardType})</span>
+            
+            {/* ④ 適正ポジション（公式カラーバッジ） */}
+            <div style="display: flex; gap: 4px; align-items: center;">
+              {player.positionsMain.map((pos) => {
+                const cat = getPositionCategory(pos);
+                let badgeStyle = "color: #ffffff; font-size: 0.75rem; font-weight: bold; padding: 2px 6px; border-radius: 4px; min-width: 32px; text-align: center;";
+                if (cat === "fw") badgeStyle += " background-color: #e74c3c;";
+                if (cat === "mf") badgeStyle += " background-color: #2ecc71;";
+                if (cat === "df") badgeStyle += " background-color: #3498db;";
+                if (cat === "gk") badgeStyle += " background-color: #f1c40f; color: #000000;";
+                return <span style={badgeStyle}>{pos}</span>;
+              })}
+            </div>
+            
+            {/* ⑤ 所持スキル（右揃えに固定） */}
+            <div style="font-size: 0.85rem; color: #666666; text-align: right; margin-left: auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 320px;">
+              {[...(player.specialSkills || []), ...(player.selectSkills || [])].join(' / ')}
+            </div>
+          </div>
+        </a>
+      );
+    })}
+  </div>
+
+  <div id="no-players-msg" style="display: none; text-align: center; padding: 40px; border: 1px dashed #cbd5e1; border-radius: 8px; color: #64748b; background-color: #f8fafc; font-weight: bold; margin-top: 15px;">
+    🔍 条件に一致する選手は見つかりませんでした。
+  </div>
+</BaseLayout>
+
+<script>
+  function initAdvancedSearch() {
+    const filterType = document.getElementById('filter-type') as HTMLSelectElement;
+    const sortOrder = document.getElementById('sort-order') as HTMLSelectElement;
+    const wrapper = document.getElementById('player-list-wrapper');
+    const noMsg = document.getElementById('no-players-msg');
+    const msgDefault = document.getElementById('cond-default-msg');
+    const selectPos = document.getElementById('cond-pos') as HTMLSelectElement;
+    const selectType = document.getElementById('cond-type') as HTMLSelectElement;
+    const selectCardType = document.getElementById('cond-cardtype') as HTMLSelectElement;
+    const inputKeyword = document.getElementById('cond-keyword') as HTMLInputElement;
+
+    if (!filterType || !sortOrder || !wrapper || !noMsg || !msgDefault || !selectPos || !selectType || !selectCardType || !inputKeyword) return;
+    const initialItems = Array.from(wrapper.querySelectorAll('.player-list-item')) as HTMLElement[];
+
+    function handleTypeChange() {
+      const type = filterType.value;
+      msgDefault.style.display = 'none';
+      selectPos.style.display = 'none';
+      selectType.style.display = 'none';
+      selectCardType.style.display = 'none';
+      inputKeyword.style.display = 'none';
+
+      if (type === 'all') msgDefault.style.display = 'inline-block';
+      if (type === 'pos') selectPos.style.display = 'inline-block';
+      if (type === 'type') selectType.style.display = 'inline-block';
+      if (type === 'cardType') selectCardType.style.display = 'inline-block';
+      if (type === 'skill' || type === 'country') {
+        inputKeyword.style.display = 'inline-block';
+        inputKeyword.placeholder = type === 'skill' ? 'スキル名を入力... (例: パス)' : '国名・所属を入力...';
+      }
+      inputKeyword.value = '';
+      updateList();
+    }
+
+    function updateList() {
+      const type = filterType.value;
+      const sort = sortOrder.value;
+      let visibleCount = 0;
+
+      initialItems.forEach(item => {
+        let match = false;
+        if (type === 'all') match = true;
+        else if (type === 'pos') match = item.getAttribute('data-pos') === selectPos.value;
+        else if (type === 'type') match = item.getAttribute('data-type') === selectType.value;
+        else if (type === 'cardType') match = (item.getAttribute('data-cardtype') || "").includes(selectCardType.value);
+        else if (type === 'skill') match = (item.getAttribute('data-skills') || "").toLowerCase().includes(inputKeyword.value.toLowerCase().trim());
+        else if (type === 'country') match = (item.getAttribute('data-country') || "").toLowerCase().includes(inputKeyword.value.toLowerCase().trim());
+
+        if (match) { item.style.display = 'block'; visibleCount++; }
+        else { item.style.display = 'none'; }
+      });
+
+      noMsg.style.display = visibleCount === 0 ? 'block' : 'none';
+      wrapper.style.display = visibleCount === 0 ? 'none' : 'block';
+
+      const currentItems = Array.from(wrapper.querySelectorAll('.player-list-item')) as HTMLElement[];
+      currentItems.sort((a, b) => {
+        const gradeA = parseInt(a.getAttribute('data-grade') || '0', 10);
+        const gradeB = parseInt(b.getAttribute('data-grade') || '0', 10);
+        const totalA = parseInt(a.getAttribute('data-total') || '0', 10);
+        const totalB = parseInt(b.getAttribute('data-total') || '0', 10);
+        const ofeA = parseInt(a.getAttribute('data-ofe') || '0', 10);
+        const ofeB = parseInt(b.getAttribute('data-ofe') || '0', 10);
+        const tecA = parseInt(a.getAttribute('data-tec') || '0', 10);
+        const tecB = parseInt(b.getAttribute('data-tec') || '0', 10);
+        const staA = parseInt(a.getAttribute('data-sta') || '0', 10);
+        const staB = parseInt(b.getAttribute('data-sta') || '0', 10);
+        const defA = parseInt(a.getAttribute('data-def') || '0', 10);
+        const defB = parseInt(b.getAttribute('data-def') || '0', 10);
+        const powA = parseInt(a.getAttribute('data-pow') || '0', 10);
+        const powB = parseInt(b.getAttribute('data-pow') || '0', 10);
+        const spdA = parseInt(a.getAttribute('data-spd') || '0', 10);
+        const spdB = parseInt(b.getAttribute('data-spd') || '0', 10);
+        const birthA = a.getAttribute('data-birth') || '9999-12-31';
+        const birthB = b.getAttribute('data-birth') || '9999-12-31';
+
+        switch (sort) {
+          case 'grade-desc': return gradeB - gradeA;
+          case 'grade-asc':  return gradeA - gradeB;
+          case 'total-desc': return totalB - totalA;
+          case 'total-asc':  return totalA - totalB;
+          case 'ofe-desc':   return ofeB - ofeA;
+          case 'ofe-asc':    return ofeA - ofeB;
+          case 'tec-desc':   return tecB - tecA;
+          case 'tec-asc':    return tecA - tecB;
+          case 'sta-desc':   return staB - staA;
+          case 'sta-asc':    return staA - staB;
+          case 'def-desc':   return defB - defA;
+          case 'def-asc':    return defA - defB;
+          case 'pow-desc':   return powB - powA;
+          case 'pow-asc':    return powA - powB;
+          case 'spd-desc':   return spdB - spdA;
+          case 'spd-asc':    return spdA - spdB;
+          case 'birth-asc':  return birthA.localeCompare(birthB);
+          case 'birth-desc': return birthB.localeCompare(birthA);
+          default:           return gradeB - gradeA;
+        }
+      });
+      currentItems.forEach(item => wrapper.appendChild(item));
+    }
+
+    filterType.addEventListener('change', handleTypeChange);
+    selectPos.addEventListener('change', updateList);
+    selectType.addEventListener('change', updateList);
+    selectCardType.addEventListener('change', updateList);
+    inputKeyword.addEventListener('input', updateList);
+    sortOrder.addEventListener('change', updateList);
+
+    updateList();
+    const navHome = document.getElementById('nav-home');
+    if (navHome) navHome.classList.add('active');
+  }
+
+  initAdvancedSearch();
+  document.addEventListener('astro:after-swap', initAdvancedSearch);
+</script>
+
+<style is:global>
+  .player-list-item { transition: opacity 0.15s; }
+  .player-list-item:hover { opacity: 0.85; box-shadow: inset 0 0 100px rgba(0,0,0,0.02); }
+</style>

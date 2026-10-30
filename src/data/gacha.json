@@ -1,0 +1,27 @@
+[
+  {
+    "id": "gacha-prometheus-9th",
+    "title": "9th Anniversary 超プロメテウス11連ガチャ",
+    "period": "2026-10-24 ～ 2026-11-15",
+    "featuredPlayerIds": [
+      "pele-legend-2026",
+      "figo-legend-2026",
+      "ibrahimovic-legend-2026",
+      "baresi-legend-2026"
+    ]
+  },
+  {
+    "id": "gacha-dynamos-2026",
+    "title": "ダイナモピックアップ11連ガチャ",
+    "period": "2026-10-24 ～ 2026-11-15",
+    "featuredPlayerIds": [
+      "pedri-national-dynamos-2026",
+      "marc-cucurella-national-dynamos-2026",
+      "joshua-kimmich-national-dynamos-2026",
+      "kaishu-sano-national-dynamos-2026",
+      "julian-ryerson-national-dynamos-2026",
+      "enzo-fernandez-national-dynamos-2026",
+      "elliot-anderson-national-dynamos-2026"
+    ]
+  }
+]

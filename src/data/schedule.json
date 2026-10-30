@@ -1,0 +1,79 @@
+[
+  {
+    "title": "ダイナモピックアップ11連ガチャ",
+    "type": "gacha",
+    "startDate": "2026-10-16",
+    "endDate": "2026-10-31",
+    "badgeText": "ガチャ"
+  },
+  {
+    "title": "9th Anniversary 第1弾 無料11連ガチャ",
+    "type": "gacha",
+    "startDate": "2026-10-31",
+    "endDate": "",
+    "badgeText": "ガチャ"
+  },
+  {
+    "title": "9th Anniversary 超プロメテウス11連ガチャ",
+    "type": "gacha",
+    "startDate": "2026-10-26",
+    "endDate": "2026-10-31",
+    "badgeText": "ガチャ"
+  },
+  {
+    "title": "ウェルカムキャンペーン",
+    "type": "campaign",
+    "startDate": "2026-10-26",
+    "endDate": "2027-01-13",
+    "badgeText": "キャンペーン"
+  },
+  {
+    "title": "Choice&Judgement",
+    "type": "campaign",
+    "startDate": "2026-10-26",
+    "endDate": "2027-01-13",
+    "badgeText": "キャンペーン"
+  },
+  {
+    "title": "9th Anniversary コラボイベント",
+    "type": "event",
+    "startDate": "2026-10-26",
+    "endDate": "2026-11-03",
+    "badgeText": "イベント"
+  },
+  {
+    "title": "CHAMPIONSHIP",
+    "type": "event",
+    "startDate": "2026-10-26",
+    "endDate": "2026-11-01",
+    "badgeText": "イベント"
+  },
+  {
+    "title": "タイタンズリーグ",
+    "type": "event",
+    "startDate": "2026-11-09",
+    "endDate": "2026-11-16",
+    "badgeText": "タイタンズリーグ"
+  },
+  {
+    "title": "9th Anniversary スペシャルデイリーギフト",
+    "type": "campaign",
+    "startDate": "2026-10-31",
+    "endDate": "",
+    "badgeText": "キャンペーン"
+  },
+  {
+    "title": "9th Anniversary 第2弾 無料11連ガチャ",
+    "type": "gacha",
+    "startDate": "2026-10-31",
+    "endDate": "",
+    "badgeText": "ガチャ"
+  },
+  {
+    "title": "9周年記念 特別ミッション",
+    "type": "campaign",
+    "startDate": "2026-10-31",
+    "endDate": "",
+    "badgeText": "キャンペーン"
+  }
+]

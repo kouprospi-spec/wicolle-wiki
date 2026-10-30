@@ -1,0 +1,310 @@
+---
+// src/pages/players/[id].astro (前半部・スキルマスター連動版)
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import players from '../../data/players.json';
+import skillsMaster from '../../data/skills.json'; // 📂 スキルマスターデータを新しくインポート
+
+export async function getStaticPaths() {
+  return players.map((player) => ({
+    params: { id: player.id },
+    props: { player },
+  }));
+}
+
+const { player } = Astro.props;
+const s = player.status;
+
+// ⚽ ポジションの色判定（大枠文字にも完全対応）
+function getPositionCategory(pos) {
+  const p = pos.toUpperCase();
+  if (["CF", "ST", "LWG", "RWG", "FW"].includes(p)) return "fw";
+  if (["OMF", "CMF", "LMF", "RMF", "DMF", "RSH", "LSH", "MF"].includes(p)) return "mf";
+  if (["CB", "RSB", "LSB", "DF"].includes(p)) return "df";
+  if (["GK"].includes(p)) return "gk";
+  return "";
+}
+
+// 📐 選手データに紐づくスキルオブジェクトをマスターから安全に取得する関数
+function getSkillInfo(skillName) {
+  const master = skillsMaster[skillName];
+  return {
+    name: skillName,
+    type: master ? master.type : "種類不明",
+    desc: master ? master.desc : "説明データが登録されていません。"
+  };
+}
+
+// 選手が持つスキル名を1つずつマスタデータと照合して安全にオブジェクト化
+const spSkill1 = player.specialSkills[0] ? getSkillInfo(player.specialSkills[0]) : null;
+const spSkill2 = player.specialSkills[1] ? getSkillInfo(player.specialSkills[1]) : null;
+const selSkill1 = player.selectSkills[0] ? getSkillInfo(player.selectSkills[0]) : null;
+const selSkill2 = player.selectSkills[1] ? getSkillInfo(player.selectSkills[1]) : null;
+
+// 📊 ステータスデータ配列
+const statusData = [
+  { type: "normal", label: "Lv.1", s: s.normal_lv1 },
+  { type: "normal", label: "Lv.70", s: s.normal_lv70 },
+  { type: "normal", label: "Lv.80", s: s.normal_lv80 },
+  { type: "kira", label: "Lv.1", s: s.kira_lv1 },
+  { type: "kira", label: "Lv.70", s: s.kira_lv70 },
+  { type: "kira", label: "Lv.80", s: s.kira_lv80 }
+];
+---
+
+<BaseLayout pageTitle={player.name + 'のスキル・適正ポジション - ウイコレ攻略wiki'}>
+  <div class="breadcrumb">
+    <a href="/">トップ</a> ＞ <a href="/">選手一覧</a> ＞ {player.name}
+  </div>
+
+  <h1>【ウイコレ】{player.name}（{player.cardType}）のステータス・スキル解析</h1>
+
+  <h2 class="section-title">{player.name}の基本情報・適正ポジション</h2>
+  <div class="profile-flex-container">
+    {/* 💡 画像ボックスに拡大用のクリックイベントを設定（スタイルでカーソルを虫眼鏡に） */}
+    <div class="player-card-box" id="player-card-trigger" style="cursor: zoom-in;">
+      {player.image ? <img src={player.image} alt={player.name} class="player-card-image" id="src-card-img" /> : <div class="no-image-placeholder">NO IMAGE</div>}
+    </div>
+
+    <table class="status-table">
+      <tr><th>名前</th><td><strong>{player.name}</strong></td></tr>
+      <tr><th>ポジション</th><td><span class={`pos-badge main ${getPositionCategory(player.position)}`} style="margin:0;">{player.position}</span></td></tr>
+      <tr><th>所属</th><td>{player.country}</td></tr>
+      <tr><th>シリーズ</th><td><span class="card-type-highlight">{player.cardType}</span></td></tr>
+      <tr><th>グレード</th><td><strong>{player.grade}</strong></td></tr>
+      <tr><th>タイプ</th><td>{player.type}タイプ</td></tr>
+      <tr>
+        <th>適正</th>
+        <td>
+          <div style="margin-bottom: 12px;">
+            <span class="pos-group-label">メイン適正:</span>
+            {player.positionsMain.map((pos) => <span class={`pos-badge main ${getPositionCategory(pos)}`}>{pos}</span>)}
+          </div>
+          {player.positionsSub && player.positionsSub.length > 0 && (
+            <div>
+              <span class="pos-group-label">サブ適正:</span>
+              {player.positionsSub.map((pos) => <span class={`pos-badge sub ${getPositionCategory(pos)}`}>{pos}</span>)}
+              <span class="pos-notice">※適正開放センス等の習得で能力を下げずに運用可能</span>
+            </div>
+          )}
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <h2 class="section-title">レベル・状態別ステータス値</h2>
+  <div class="status-tab-container">
+    <button class="status-tab-btn active" data-status-type="normal">ノーマル状態</button>
+    <button class="status-tab-btn" data-status-type="kira">キラ状態</button>
+  </div>
+
+  <div style="overflow-x: auto;">
+    <table class="param-table">
+      <thead>
+        <tr><th>状態 / レベル</th><th>OFE</th><th>TEC</th><th>STA</th><th>DEF</th><th>POW</th><th>SPD</th><th class="total-th">総合値</th></tr>
+      </thead>
+      <tbody>
+        {statusData.map((row) => {
+          const total = row.s.ofe + row.s.tec + row.s.sta + row.s.def + row.s.pow + row.s.spd;
+          return (
+            <tr class={`status-data-row type-${row.type}`}>
+              <td class={`lv-label ${row.type === 'kira' ? 'kira' : ''}`}>{row.label}</td>
+              <td>{row.s.ofe}</td><td>{row.s.tec}</td><td>{row.s.sta}</td><td>{row.s.def}</td><td>{row.s.pow}</td><td>{row.s.spd}</td>
+              <td class="total-val">{total}</td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  </div>
+
+  <h2 class="section-title">所持スキル・カスタムセンス</h2>
+  <table class="status-table-bottom">
+    <tr>
+      <th>スペシャルスキル1</th>
+      <td class="skill-cell">
+        {spSkill1 ? (
+          <button class="skill-pop-btn" data-type={spSkill1.type} data-desc={spSkill1.desc}>{spSkill1.name}</button>
+        ) : "-"}
+      </td>
+    </tr>
+    <tr>
+      <th>スペシャルスキル2</th>
+      <td class="skill-cell">
+        {spSkill2 ? (
+          <button class="skill-pop-btn" data-type={spSkill2.type} data-desc={spSkill2.desc}>{spSkill2.name}</button>
+        ) : "-"}
+      </td>
+    </tr>
+    <tr>
+      <th>設定可能なセレクトスキル1</th>
+      <td class="skill-cell">
+        {selSkill1 ? (
+          <button class="skill-pop-btn" data-type={selSkill1.type} data-desc={selSkill1.desc}>{selSkill1.name}</button>
+        ) : "-"}
+      </td>
+    </tr>
+    <tr>
+      <th>設定可能なセレクトスキル2</th>
+      <td class="skill-cell">
+        {selSkill2 ? (
+          <button class="skill-pop-btn" data-type={selSkill2.type} data-desc={selSkill2.desc}>{selSkill2.name}</button>
+        ) : "-"}
+      </td>
+    </tr>
+    <tr><th>チームスキル</th><td style="color: #0073e6; font-weight: bold;">{player.teamSkill}</td></tr>
+    <tr><th>カスタムセンス</th><td><span class="sense-badge">✨ {player.customSense}</span></td></tr>
+  </table>
+
+  {/* 💬 スキル詳細用ポップアップ */}
+  <div id="skill-popover" class="skill-popover-box" style="display: none;">
+    <div class="popover-arrow"></div>
+    <div class="popover-content">
+      <div id="popover-skill-type" class="pop-type"></div>
+      <div id="popover-skill-desc" class="pop-desc"></div>
+    </div>
+  </div>
+
+  {/* 🖼️ 新設：画像拡大表示用全画面モーダルコンテナ */}
+  <div id="image-modal" class="img-modal-overlay" style="display: none;">
+    <div class="img-modal-wrapper">
+      <img id="modal-target-img" src="" alt="拡大画像" class="modal-scaled-image" />
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  function initPageLogic() {
+    // 🔘 ステータスタブ切り替え
+    const tabBtns = document.querySelectorAll('.status-tab-btn');
+    const statusRows = document.querySelectorAll('.status-data-row');
+    statusRows.forEach(row => {
+      if (row.classList.contains('type-kira')) (row as HTMLElement).style.display = 'none';
+    });
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const type = btn.getAttribute('data-status-type');
+        tabBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        statusRows.forEach(row => {
+          (row as HTMLElement).style.display = row.classList.contains(`type-${type}`) ? '' : 'none';
+        });
+      });
+    });
+
+    // 💬 スキル吹き出しポップアップ処理
+    const skillBtns = document.querySelectorAll('.skill-pop-btn');
+    const popover = document.getElementById('skill-popover');
+    const popType = document.getElementById('popover-skill-type');
+    const popDesc = document.getElementById('popover-skill-desc');
+
+    if (popover && popType && popDesc) {
+      skillBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          popType.textContent = `【種類】${btn.getAttribute('data-type')}`;
+          popDesc.textContent = btn.getAttribute('data-desc');
+          const rect = btn.getBoundingClientRect();
+          popover.style.top = `${rect.bottom + window.scrollY + 8}px`;
+          popover.style.left = `${rect.left + window.scrollX}px`;
+          popover.style.display = 'block';
+        });
+      });
+      document.addEventListener('click', () => { popover.style.display = 'none'; });
+    }
+
+    // 🖼️ 新設：画像拡大モーダル開閉ロジック
+    const cardTrigger = document.getElementById('player-card-trigger');
+    const imgModal = document.getElementById('image-modal');
+    const modalImg = document.getElementById('modal-target-img') as HTMLImageElement;
+    const srcImg = document.getElementById('src-card-img') as HTMLImageElement;
+
+    if (cardTrigger && imgModal && modalImg && srcImg) {
+      // カードをクリックしたら全画面モーダルを開く
+      cardTrigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        modalImg.src = srcImg.src; // 現在表示されている画像パスを同期（ノーマル/キラ両対応）
+        imgModal.style.display = 'flex';
+        document.body.style.overflow = 'hidden'; // 背景スクロールを禁止にする安心親切設計
+      });
+
+      // モーダルの背景（または画像）をクリックしたら閉じる
+      imgModal.addEventListener('click', () => {
+        imgModal.style.display = 'none';
+        document.body.style.overflow = ''; // スクロール禁止を解除
+      });
+    }
+  }
+
+  initPageLogic();
+  document.addEventListener('astro:after-swap', initPageLogic);
+</script>
+
+<style>
+  .breadcrumb { font-size: 0.85rem; color: #666; margin-bottom: 15px; }
+  .breadcrumb a { color: #0073e6; text-decoration: none; }
+  h1 { font-size: 1.6rem; color: #111111; margin: 0 0 20px 0; border-bottom: 1px solid #e1e4e6; padding-bottom: 15px; }
+  .section-title { background-color: #00bfa5; color: #ffffff; font-size: 1.25rem; padding: 10px 15px; margin: 35px 0 15px 0; border-radius: 4px; font-weight: bold; }
+  .card-type-highlight { font-weight: bold; color: #e67e22; }
+  .pos-group-label { font-size: 0.85rem; color: #555; display: inline-block; width: 90px; font-weight: bold; }
+  .pos-notice { display: block; font-size: 0.75rem; color: #888; margin-top: 6px; }
+  
+  .profile-flex-container { display: flex; gap: 20px; align-items: stretch; margin-top: 10px; }
+  
+  /* 📐 先ほど微調整した「縦390px × 横224px」の超美麗サイズ枠 */
+  .player-card-box { width: 224px; height: 390px; background-color: #f1f5f9; border: 2px solid #e2e8f0; border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); transition: transform 0.2s; }
+  .player-card-box:hover { transform: scale(1.02); } /* マウスを乗せるとうっすら浮き出る遊び心演出 */
+  .player-card-image { width: 100%; height: 100%; object-fit: cover; }
+  .no-image-placeholder { font-weight: bold; color: #94a3b8; font-size: 0.9rem; }
+
+  .status-table { width: 100%; border-collapse: collapse; background-color: #ffffff; margin: 0; height: 100%; }
+  .status-table th, .status-table td { border: 1px solid #e1e4e6; padding: 13.5px 15px; text-align: left; font-size: 0.95rem; }
+  .status-table th { background-color: #f7f9fa; width: 28%; color: #555; font-weight: bold; }
+
+  .status-table-bottom { width: 100%; border-collapse: collapse; margin-top: 10px; background-color: #ffffff; }
+  .status-table-bottom th, .status-table-bottom td { border: 1px solid #e1e4e6; padding: 12px 15px; text-align: left; font-size: 0.95rem; }
+  .status-table-bottom th { background-color: #f7f9fa; width: 32%; color: #555; font-weight: bold; white-space: nowrap; }
+
+    .skill-cell { position: relative; }
+  .skill-pop-btn { background: none; border: none; padding: 0; color: #0073e6; font-size: 0.95rem; font-weight: bold; cursor: pointer; text-decoration: underline; font-family: inherit; }
+  .skill-pop-btn:hover { color: #0056b3; }
+
+  .skill-popover-box { position: absolute; z-index: 1000; background-color: #ffffff; border: 2px solid #00bfa5; border-radius: 8px; padding: 12px 15px; width: 280px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+  .popover-arrow { position: absolute; top: -8px; left: 20px; width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-bottom: 8px solid #00bfa5; }
+  .pop-type { font-size: 0.8rem; font-weight: bold; color: #00bfa5; margin-bottom: 4px; }
+  .pop-desc { font-size: 0.85rem; color: #333333; line-height: 1.5; }
+
+  /* 🖼️ 画像拡大用全画面モーダルのスタイリング定義 */
+  .img-modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0, 0, 0, 0.75); display: flex; align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(4px); cursor: zoom-out; }
+  .img-modal-wrapper { max-width: 90%; max-height: 90%; display: flex; align-items: center; justify-content: center; }
+  .modal-scaled-image { max-width: 100%; max-height: 85vh; object-fit: contain; border-radius: 12px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); animation: zoomInEffect 0.2s ease-out; }
+
+  @keyframes zoomInEffect {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  .status-tab-container { display: flex; gap: 8px; margin-bottom: 15px; }
+  .status-tab-btn { background-color: #ffffff; border: 1px solid #cbd5e1; padding: 10px 20px; border-radius: 6px; font-size: 0.95rem; font-weight: bold; cursor: pointer; color: #475569; transition: all 0.2s; }
+  .status-tab-btn:hover { background-color: #f1f5f9; }
+  .status-tab-btn.active { background-color: #00bfa5; border-color: #00bfa5; color: #ffffff; }
+
+  .param-table { width: 100%; border-collapse: collapse; margin-top: 10px; background-color: #ffffff; text-align: center; }
+  .param-table th, .param-table td { border: 1px solid #e1e4e6; padding: 12px 8px; font-size: 0.9rem; }
+  .param-table th { background-color: #f7f9fa; color: #555; font-weight: bold; }
+  .total-th { background-color: #ffebe6 !important; color: #ea2027 !important; }
+  .lv-label { font-weight: bold; text-align: left; padding-left: 12px; color: #2d3748; }
+  .lv-label.kira { color: #d4ac0d; }
+  .total-val { font-weight: bold; background-color: #fff5f5; color: #ea2027; }
+
+  .sense-badge { background-color: #f1c40f; color: #000; font-weight: bold; padding: 2px 6px; border-radius: 4px; font-size: 0.9rem; }
+
+  .pos-badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-weight: bold; font-size: 0.85rem; margin-right: 6px; text-align: center; min-width: 44px; box-sizing: border-box; }
+  .pos-badge.main.fw { background-color: #e74c3c; color: white; border: 1px solid #c0392b; }
+  .pos-badge.sub.fw  { background-color: #fce4d6; color: #c0392b; border: 1px solid #f5b7b1; }
+  .pos-badge.main.mf { background-color: #2ecc71; color: white; border: 1px solid #27ae60; }
+  .pos-badge.sub.mf  { background-color: #e8f8f5; color: #27ae60; border: 1px solid #a3e4d7; }
+  .pos-badge.main.df { background-color: #3498db; color: white; border: 1px solid #2980b9; }
+  .pos-badge.sub.df  { background-color: #ebf5fb; color: #2980b9; border: 1px solid #a9dfbf; }
+  .pos-badge.main.gk { background-color: #f1c40f; color: #000000; border: 1px solid #d4ac0d; }
+  .pos-badge.sub.gk  { background-color: #fef9e7; color: #b7950b; border: 1px solid #f9e79f; }
+</style>

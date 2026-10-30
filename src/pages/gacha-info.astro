@@ -1,0 +1,103 @@
+---
+// src/pages/gacha-info.astro
+import BaseLayout from '../layouts/BaseLayout.astro';
+import gachaList from '../data/gacha.json';
+import playerMaster from '../data/players.json'; // 📂 選手マスターデータを新しくインポート
+
+// ⚽ ポジション名から公式のカラーカテゴリを判定する共通関数
+function getPositionCategory(pos) {
+  if (!pos) return "";
+  const p = pos.toUpperCase();
+  if (["CF", "ST", "LWG", "RWG", "FW"].includes(p)) return "fw";
+  if (["OMF", "CMF", "LMF", "RMF", "DMF", "RSH", "LSH", "MF"].includes(p)) return "mf";
+  if (["CB", "RSB", "LSB", "DF"].includes(p)) return "df";
+  if (["GK"].includes(p)) return "gk";
+  return "";
+}
+---
+
+<BaseLayout pageTitle="【ウイコレ】開催中のガチャ一覧と排出選手 - ウイコレ攻略wiki">
+  <h2 style="font-size: 1.3rem; border-left: 5px solid #00bfa5; padding-left: 12px; margin: 0 0 20px 0; color: #111;">現在開催中のガチャ一覧</h2>
+  <p style="font-size: 0.9rem; color: #666; margin-bottom: 25px;">ウイコレで現在登場しているガチャと、排出される限定選手の一覧です。</p>
+
+  <div class="gacha-container" style="display: flex; flex-direction: column; gap: 35px;">
+    {gachaList.map((gacha) => (
+      <div class="gacha-card" style="border: 1px solid #e1e4e6; border-radius: 8px; background-color: #ffffff; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+        
+        {/* ガチャヘッダー（タイトル＆期間） */}
+        <div class="gacha-header" style="background-color: #f7f9fa; border-bottom: 1px solid #e1e4e6; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+          <h3 style="font-size: 1.15rem; font-weight: bold; margin: 0; color: #111;">{gacha.title}</h3>
+          <span style="font-size: 0.85rem; color: #666; font-weight: bold;">📅 期間: {gacha.period}</span>
+        </div>
+        
+        {/* ガチャボディ */}
+        <div class="gacha-body" style="padding: 20px;">
+          <h4 style="font-size: 1rem; font-weight: bold; color: #111; margin: 0 0 12px 0; padding-bottom: 6px; border-bottom: 2px solid #00bfa5;">🎯 主な排出選手</h4>
+          
+          <div class="featured-players-list" style="display: flex; flex-direction: column; gap: 10px;">
+            {gacha.featuredPlayerIds.map((pid) => {
+              // 📐 IDを鍵にして、playerMasterからその選手の全データを自動引き抜き
+              const matchedMaster = playerMaster.find(p => p.id === pid);
+              
+              // 万が一まだ登録されていない選手（イブラやバレージなど）の場合の安全な仮表示ガード
+              const pInfo = matchedMaster ? {
+                id: pid,
+                name: matchedMaster.name,
+                grade: matchedMaster.grade,
+                pos: matchedMaster.position
+              } : {
+                id: pid,
+                name: pid === "ibrahimovic-legend-2026" ? "ズラタン イブラヒモヴィッチ" : pid === "baresi-legend-2026" ? "フランコ バレージ" : "未登録の選手",
+                grade: 125,
+                pos: pid === "baresi-legend-2026" ? "DF" : "FW"
+              };
+
+              return (
+                <a href={`/players/${pInfo.id}`} style="text-decoration: none; color: inherit; display: block; transition: transform 0.1s;">
+                  <div class="player-row" style="display: flex; align-items: center; padding: 12px 16px; border: 1px solid #e1e4e6; border-radius: 6px; background-color: #ffffff; gap: 15px;">
+                    
+                    {/* グレード */}
+                    <span style="background-color: #f39c12; color: #ffffff; font-weight: bold; font-size: 0.85rem; padding: 3px 8px; border-radius: 4px; min-width: 40px; text-align: center;">
+                      {pInfo.grade}
+                    </span>
+                    
+                    {/* ポジション公式カラーバッジ */}
+                    <span class={`pos-badge ${getPositionCategory(pInfo.pos)}`} style="display: inline-block; padding: 3px 8px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; text-align: center; min-width: 40px; color: white;">
+                      {pInfo.pos}
+                    </span>
+                    
+                    {/* 選手名 */}
+                    <span style="font-size: 1rem; font-weight: bold; color: #0073e6;">
+                      {pInfo.name}
+                    </span>
+                    
+                    <span style="margin-left: auto; font-size: 0.8rem; color: #999;">詳細データ ＞</span>
+                  </div>
+                </a>
+              );
+            })}
+          </div>
+
+        </div>
+      </div>
+    ))}
+  </div>
+</BaseLayout>
+
+<style is:global>
+  /* 左メニューの「開催中ガチャ」アクティブ化 */
+  #nav-gacha { font-weight: bold; }
+  
+  /* ポジションカラー定義 */
+  .pos-badge.fw { background-color: #e74c3c; }
+  .pos-badge.mf { background-color: #2ecc71; }
+  .pos-badge.df { background-color: #3498db; }
+  .pos-badge.gk { background-color: #f1c40f; color: #000000 !important; }
+
+  /* ホバー時の行ハイライト演出 */
+  .featured-players-list a:hover div {
+    background-color: #f9fafb !important;
+    border-color: #00bfa5 !important;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  }
+</style>
