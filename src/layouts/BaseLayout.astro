@@ -102,4 +102,35 @@ const { pageTitle } = Astro.props;
     color: #ffffff !important;
     box-shadow: 0 2px 6px rgba(0, 191, 165, 0.3);
   }
+
+    /* 📱 スマホ画面（画面幅768px以下）でコンテンツ幅を限界まで広くする最強設定 */
+  @media (max-width: 768px) {
+    /* 1. 2カラムの左右並びを縦並びに崩し、左右の無駄な余白を完全にゼロにする */
+    div[style*="max-width: 1200px"] {
+      flex-direction: column !important;
+      margin: 10px auto !important;
+      padding: 0 10px !important; /* 左右の余白を極限まで詰めて広くする */
+      gap: 15px !important;
+    }
+
+    /* 2. サイドバーメニューも横幅いっぱいに広げる */
+    nav[style*="width: 220px"] {
+      width: 100% !important;
+      box-sizing: border-box !important;
+      padding: 10px !important;
+    }
+
+    /* 3. メインコンテンツ（選手一覧など）の白い箱も横幅いっぱいに広げる */
+    main[style*="flex: 1"] {
+      width: 100% !important;
+      box-sizing: border-box !important;
+      padding: 15px !important; /* 内側の余白を半分にして表示領域を最大化 */
+    }
+
+    /* ヘッダー全体の左右余白もスマホ用にコンパクト化 */
+    header {
+      padding: 10px 15px !important;
+    }
+  }
+
 </style>
