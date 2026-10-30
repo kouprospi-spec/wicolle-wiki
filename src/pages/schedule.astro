@@ -1,259 +1,126 @@
 ---
-// src/pages/schedule.astro (前半部・残り日数アテンションロジック搭載版)
+// src/pages/schedule.astro
 import BaseLayout from '../layouts/BaseLayout.astro';
-import scheduleList from '../data/schedule.json';
+import scheduleData from '../data/schedule.json';
 
-// 📅 今日の日付（2026/10/30）を取得し、時分秒をリセット
-const today = new Date();
-today.setHours(0, 0, 0, 0);
+// ⏱️ 今日の日付を取得（時差バグを防ぐためJST基準で固定）
+const now = new Date();
+const jstOffset = 9 * 60 * 60 * 1000;
+const todayJST = new Date(now.getTime() + jstOffset);
+const todayStr = todayJST.toISOString().split('T')[0];
 
-// 今週の日曜日（週の初め）を正確に計算
-const dayOfWeek = today.getDay();
-const diffToSunday = -dayOfWeek;
-const thisSunday = new Date(today);
-thisSunday.setDate(today.getDate() + diffToSunday);
-
-// 📐 安全に日付オブジェクトを生成する関数（時差・空欄バグ回避）
-function parseLocalDate(dateStr) {
-  if (!dateStr || dateStr.trim() === "") return null;
-  const parts = dateStr.split('-');
-  if (parts.length !== 3) return null;
-  return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]), 0, 0, 0, 0);
+// 🎨 イベントタイプに応じたカラー判定
+function getScheduleColor(type) {
+  switch (type) {
+    case 'gacha': return '#e74c3c';       // ガチャ：赤
+    case 'event': return '#3498db';       // イベント：青
+    case 'campaign': return '#2ecc71';    // キャンペーン：緑
+    case 'exchange': return '#e84393';    // 交換所：マゼンタピンク 💡新設
+    default: return '#f1c40f';            // タイタンズリーグなど：金
+  }
 }
 
-// ⏳ 終了日までの残り日数を計算してアテンション用の文字を返す関数
-function getAttentionText(endDateStr, currentDayObj) {
-  if (!endDateStr) return null; // 終了日の指定がない長期イベントは対象外
-  
-  const endDay = parseLocalDate(endDateStr);
-  if (!endDay) return null;
+// 📅 4週間の日付タイムライン配列を全自動生成
+const datesTimeline = [];
+for (let i = 0; i < 28; i++) {
+  const d = new Date(todayJST.getTime() + i * 24 * 60 * 60 * 1000);
+  datesTimeline.push(d.toISOString().split('T')[0]);
+}
 
-  // ミリ秒の差分から日数（24時間換算）を計算
-  const diffTime = endDay.getTime() - currentDayObj.getTime();
+// 「あと〇日」または「開催中」の文字列計算関数
+function getRemainingDays(endDate, startDate) {
+  if (!endDate) return "常設・終了未定";
+  
+  const end = new Date(endDate + 'T23:59:59');
+  const start = new Date(startDate + 'T00:00:00');
+  const current = new Date(todayStr + 'T00:00:00');
+
+  if (current < start) {
+    const diffTime = start.getTime() - current.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return `開始まで あと ${diffDays} 日`;
+  }
+
+  if (current > end) return "終了";
+
+  const diffTime = end.getTime() - current.getTime();
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-  if (diffDays === 0) return "本日終了";
-  if (diffDays > 0 && diffDays <= 3) return `あと ${diffDays} 日`;
-  
-  return null; // 4日以上ある場合は何も表示しない
+  return `終了まで あと ${diffDays} 日`;
 }
-
-// 📐 4週間分の週タブと、その中の7日間（日〜土）のデータを生成
-const weeks = Array.from({ length: 4 }, (_, weekIdx) => {
-  const weekStart = new Date(thisSunday);
-  weekStart.setDate(thisSunday.getDate() + (weekIdx * 7));
-  
-  const weekEnd = new Date(weekStart);
-  weekEnd.setDate(weekStart.getDate() + 6);
-  
-  const startStr = `${weekStart.getMonth() + 1}/${weekStart.getDate()}`;
-  const endStr = `${weekEnd.getMonth() + 1}/${weekEnd.getDate()}`;
-  const rangeStr = `${startStr}～${endStr}`;
-  
-  const daysInWeek = Array.from({ length: 7 }, (__, dayIdx) => {
-    const currentDay = new Date(weekStart);
-    currentDay.setDate(weekStart.getDate() + dayIdx);
-    currentDay.setHours(0, 0, 0, 0);
-    
-    const month = currentDay.getMonth() + 1;
-    const date = currentDay.getDate();
-    const dayName = ["日", "月", "火", "水", "木", "金", "土"][currentDay.getDay()];
-    
-    // 🔍 この1日に期間が重なっているデータをJSONから自動抽出
-    const dayItems = scheduleList.filter(item => {
-      const itemStart = parseLocalDate(item.startDate);
-      if (!itemStart) return false;
-      
-      const itemEnd = item.endDate ? parseLocalDate(item.endDate) : new Date(2099, 11, 31);
-      
-      return currentDay.getTime() >= itemStart.getTime() && currentDay.getTime() <= itemEnd.getTime();
-    }).map(item => {
-      // 💡 各イベントごとに、その「表示されている日付時点」での残り日数を計算して合体
-      return {
-        ...item,
-        attention: getAttentionText(item.endDate, currentDay)
-      };
-    });
-
-    return {
-      dateLabel: `${month}/${date}(${dayName})`,
-      isToday: currentDay.getTime() === today.getTime(),
-      dayOfWeek: currentDay.getDay(),
-      items: dayItems
-    };
-  });
-
-  return {
-    index: weekIdx,
-    tabLabel: weekIdx === 0 ? `今週 (${rangeStr})` : rangeStr,
-    dateRange: `${startStr} ～ ${endStr}`,
-    days: daysInWeek
-  };
-});
 ---
 
-<BaseLayout pageTitle="ウイコレ攻略wiki | 日別イベントスケジュール">
-  <h2 style="font-size: 1.3rem; border-left: 5px solid #00bfa5; padding-left: 12px; margin: 0 0 20px 0; color: #111;">今後のイベント・ガチャスケジュール</h2>
-  <p style="font-size: 0.9rem; color: #666; margin-bottom: 25px;">イベント・ガチャごとに開始日と終了日を指定することで、該当する日のスケジュールに自動で表示されます。</p>
+<BaseLayout pageTitle="ウイコレ攻略wiki | 開催スケジュール・タイムライン">
+  <h2 style="font-size: 1.3rem; border-left: 5px solid #00bfa5; padding-left: 12px; margin: 0 0 20px 0; color: #111; font-weight: bold;">開催スケジュール・タイムライン</h2>
+  <p style="font-size: 0.9rem; color: #666; margin-bottom: 25px;">ウイコレアプリ内で現在開催中、および今後開催予定のイベントスケジュールが視覚的にひと目でわかる4週間タイムラインです。</p>
 
-  {/* 🔘 週切り替えタブナビゲーション */}
-  <div class="schedule-tab-container" style="display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px;">
-    {weeks.map((week) => (
-      <button 
-        class={`schedule-tab-btn ${week.index === 0 ? 'active' : ''}`} 
-        data-week-index={week.index}
-        style="white-space: nowrap;"
-      >
-        {week.tabLabel}
-      </button>
-    ))}
-  </div>
-
-  {/* 📋 各週のスケジュール（日別タイムライン）エリア */}
-  <div class="schedule-content-container">
-    {weeks.map((week) => (
-      <div 
-        class="schedule-week-panel" 
-        id={`week-panel-${week.index}`}
-        style={week.index === 0 ? "display: block;" : "display: none;"}
-      >
-        <div class="daily-schedule-container" style="display: flex; flex-direction: column; gap: 12px;">
-          {week.days.map((day) => {
-            let dateBoxStyle = "width: 110px; padding: 12px; text-align: center; font-weight: bold; font-size: 0.95rem; border-right: 1px solid #e1e4e6; display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0;";
-            if (day.isToday) {
-              dateBoxStyle += " background-color: #00bfa5; color: #ffffff;";
-            } else if (day.dayOfWeek === 6) {
-              dateBoxStyle += " background-color: #eef6ff; color: #2b6cb0;";
-            } else if (day.dayOfWeek === 0) {
-              dateBoxStyle += " background-color: #fff5f5; color: #c53030;";
-            } else {
-              dateBoxStyle += " background-color: #f7f9fa; color: #333333;";
-            }
-
+  {/* 📅 4週間タイムラインコンテナ */}
+  <div style="background-color: #ffffff; border: 1px solid #e1e4e6; border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); overflow-x: auto;">
+    <div style="min-width: 900px; display: flex; flex-direction: column; gap: 12px;">
+      
+      {/* タイムラインの最上段：日付ヘッダー */}
+      <div style="display: flex; align-items: center; border-bottom: 2px solid #cbd5e1; padding-bottom: 8px; font-weight: bold; font-size: 0.8rem; color: #475569;">
+        <div style="width: 250px; flex-shrink: 0; font-size: 0.9rem; color: #1e293b;">開催スケジュール名</div>
+        <div style="display: flex; flex: 1; justify-content: space-between; text-align: center;">
+          {datesTimeline.map((date, idx) => {
+            const displayDay = date.split('-')[2];
+            const isToday = date === todayStr;
             return (
-              <div class="daily-row" style="display: flex; border: 1px solid #e1e4e6; border-radius: 6px; background-color: #ffffff; overflow: hidden; min-height: 55px; box-shadow: 0 1px 2px rgba(0,0,0,0.02);">
-                {/* 左側：日付ラベル枠 */}
-                <div style={dateBoxStyle}>
-                  {day.isToday && <span style="font-size: 0.65rem; display: block; margin-bottom: 2px; font-weight: normal; letter-spacing: 1px; color: #fff;">TODAY</span>}
-                  {day.dateLabel}
-                </div>
-
-                {/* 右側：その日のイベント・ガチャ・キャンペーン一覧 */}
-                <div style="padding: 12px 18px; display: flex; flex-direction: column; gap: 8px; justify-content: center; flex: 1;">
-                  {day.items.length > 0 ? (
-                    day.items.map((item) => (
-                      <div style="display: flex; align-items: center; gap: 10px; font-size: 0.9rem; flex-wrap: wrap;">
-                        {/* JSON内の badgeText と type に連動したカラーバッジ */}
-                        <span class={`type-badge ${item.type}`} style="font-size: 0.75rem; font-weight: bold; padding: 2px 6px; border-radius: 4px; min-width: 80px; text-align: center; color: #ffffff; display: inline-block;">
-                          {item.badgeText || "お知らせ"}
-                        </span>
-                        
-                        {/* ガチャ(gacha)の場合はタイトルを青文字リンクにしてガチャページへ直接ジャンプ可能 */}
-                        {item.type === 'gacha' ? (
-                          <a href="/gacha-info" class="gacha-schedule-link" style="font-weight: bold; color: #0073e6; text-decoration: none; line-height: 1.4;">
-                            {item.title} <span style="font-size: 0.75rem; font-weight: normal; color: #999;">＞</span>
-                          </a>
-                        ) : (
-                          <span style="font-weight: bold; color: #222222; line-height: 1.4;">{item.title}</span>
-                        )}
-
-                        {/* 💡 残り3日以内になったイベントの横にGameWith風の赤いアテンション警告バッジを自動点灯 */}
-                        {item.attention && (
-                          <span class="attention-badge" style="background-color: #ea2027; color: #ffffff; font-size: 0.7rem; font-weight: bold; padding: 2px 6px; border-radius: 4px; margin-left: 5px; animation: pulseEffect 2s infinite;">
-                            {item.attention}
-                          </span>
-                        )}
-                      </div>
-                    ))
-                  ) : (
-                    <span style="color: #94a3b8; font-size: 0.85rem; font-style: italic;">予定なし</span>
-                  )}
-                </div>
+              <div style={`width: 100%; padding: 2px; ${isToday ? 'background-color: #e6f9f6; color: #00bfa5; font-weight: bold; border-radius: 4px;' : ''}`}>
+                <div>{displayDay}</div>
+                <div style="font-size: 0.65rem; color: #94a3b8;">{idx === 0 ? '今日' : ''}</div>
               </div>
             );
           })}
         </div>
       </div>
-    ))}
+
+      {/* タイムラインの中身：各スケジュール行 */}
+      {scheduleData.map((item) => {
+        const remainingText = getRemainingDays(item.endDate, item.startDate);
+        const color = getScheduleColor(item.type);
+
+        return (
+          <div class="timeline-row" style="display: flex; align-items: center; padding: 10px 0; border-bottom: 1px dashed #e2e8f0; font-size: 0.9rem;">
+            {/* 左側：イベントタイトルと残り日数 */}
+            <div style="width: 250px; flex-shrink: 0; padding-right: 15px; display: flex; flex-direction: column; gap: 4px;">
+              <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                <span style={`background-color: ${color}; color: #ffffff; font-size: 0.75rem; font-weight: bold; padding: 2px 6px; border-radius: 4px; white-space: nowrap;`}>
+                  {item.badgeText}
+                </span>
+                <span style="font-weight: bold; color: #1e293b; line-height: 1.3;">{item.title}</span>
+              </div>
+              <span style={`font-size: 0.75rem; font-weight: bold; ${remainingText.includes('終了まで') ? 'color: #ef4444;' : remainingText.includes('開始まで') ? 'color: #3b82f6;' : 'color: #64748b;'}`}>
+                {remainingText}
+              </span>
+            </div>
+
+            {/* 右側：4週間のバー表示（グリッド視覚化） */}
+            <div style="display: flex; flex: 1; justify-content: space-between; position: relative; height: 16px;">
+              {datesTimeline.map((date) => {
+                const isWithinRange = (!item.endDate && date >= item.startDate) || (date >= item.startDate && date <= item.endDate);
+                return (
+                  <div style={`width: 100%; height: 100%; position: relative; background-color: ${isWithinRange ? color + '22' : 'transparent'};`}>
+                    {isWithinRange && (
+                      <div style={`position: absolute; left: 0; right: 0; top: 3px; bottom: 3px; background-color: ${color}; opacity: 0.85; border-radius: 2px;`}></div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
+
+    </div>
   </div>
 </BaseLayout>
 
-{/* 🧠 タブ制御スクリプト */}
-<script>
-  function initScheduleTabs() {
-    const buttons = document.querySelectorAll('.schedule-tab-btn');
-    const panels = document.querySelectorAll('.schedule-week-panel');
-
-    buttons.forEach(button => {
-      button.addEventListener('click', () => {
-        const targetIndex = button.getAttribute('data-week-index');
-
-        buttons.forEach(btn => btn.classList.remove('active'));
-        button.classList.add('active');
-
-        panels.forEach(panel => {
-          const element = panel as HTMLElement;
-          if (element.id === `week-panel-${targetIndex}`) {
-            element.style.display = 'block';
-          } else {
-            element.style.display = 'none';
-          }
-        });
-      });
-    });
-  }
-
-  initScheduleTabs();
-  document.addEventListener('astro:after-swap', initScheduleTabs);
-</script>
-
 <style is:global>
-  /* 左メニューの「スケジュール」アクティブ化 */
-  #nav-schedule { font-weight: bold; }
-
-  /* 🏷️ badgeTextに対応するバッジカラー定義 */
-  .type-badge.gacha { background-color: #e74c3c; }
-  .type-badge.event { background-color: #00bfa5; }
-  .type-badge.campaign { background-color: #3498db; }
-
-  /* 🔗 ガチャスケジュールリンクのホバー演出 */
-  .gacha-schedule-link:hover {
-    color: #0056b3 !important;
-    text-decoration: underline !important;
+  /* スマホやPCでのホバー演出 */
+  .timeline-row {
+    transition: background-color 0.15s;
   }
-
-  /* 🔘 タブボタン装飾 */
-  .schedule-tab-btn {
-    background-color: #ffffff;
-    border: 1px solid #cbd5e1;
-    padding: 10px 18px;
-    border-radius: 6px;
-    font-size: 0.9rem;
-    font-weight: bold;
-    cursor: pointer;
-    color: #475569;
-    transition: all 0.2s;
-  }
-  .schedule-tab-btn:hover {
-    background-color: #f1f5f9;
-  }
-  .schedule-tab-btn.active {
-    background-color: #00bfa5;
-    border-color: #00bfa5;
-    color: #ffffff;
-  }
-
-  /* 行ホバー時のハイライト効果 */
-  .daily-row { transition: border-color 0.15s, box-shadow 0.15s; }
-  .daily-row:hover {
-    border-color: #00bfa5 !important;
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.05) !important;
-  }
-
-  /* 💡 アテンションバッジ用のふんわり点滅エフェクト（GameWith風のプロ仕様演出） */
-  @keyframes pulseEffect {
-    0% { opacity: 1; }
-    50% { opacity: 0.75; }
-    100% { opacity: 1; }
+  .timeline-row:hover {
+    background-color: #f8fafc;
   }
 </style>
