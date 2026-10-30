@@ -7,6 +7,13 @@
     "badgeText": "ガチャ"
   },
   {
+    "title": "9周年アニバーサリーコイン交換所",
+    "type": "exchange",
+    "startDate": "2026-10-26",
+    "endDate": "2026-11-30",
+    "badgeText": "交換所"
+  },
+  {
     "title": "9th Anniversary 第1弾 無料11連ガチャ",
     "type": "gacha",
     "startDate": "2026-10-31",
