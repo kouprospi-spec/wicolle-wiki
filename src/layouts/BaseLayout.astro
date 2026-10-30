@@ -1,5 +1,7 @@
 ---
 // src/layouts/BaseLayout.astro
+import Analytics from '@vercel/analytics/astro';
+
 interface Props {
   pageTitle: string;
 }
@@ -14,6 +16,7 @@ const { pageTitle } = Astro.props;
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{pageTitle}</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <Analytics />
   </head>
   <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f4f6f7; color: #333; line-height: 1.6;">
 
