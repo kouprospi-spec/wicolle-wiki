@@ -18,7 +18,7 @@ const s = player.status;
 function getPositionCategory(pos) {
   const p = pos.toUpperCase();
   if (["CF", "ST", "LWG", "RWG", "FW"].includes(p)) return "fw";
-  if (["OMF", "CMF", "LMF", "RMF", "DMF", "RSH", "LSH", "MF"].includes(p)) return "mf";
+  if (["OMF", "CMF", "LSH", "RSH", "DMF", "MF"].includes(p)) return "mf";
   if (["CB", "RSB", "LSB", "DF"].includes(p)) return "df";
   if (["GK"].includes(p)) return "gk";
   return "";
@@ -56,7 +56,7 @@ const statusData = [
     <a href="/">トップ</a> ＞ <a href="/">選手一覧</a> ＞ {player.name}
   </div>
 
-  <h1>【ウイコレ】{player.name}（{player.cardType}）のステータス・スキル解析</h1>
+  <h1>【ウイコレ】{player.name}（{player.cardType}）のステータス・スキル詳細</h1>
 
   <h2 class="section-title">{player.name}の基本情報・適正ポジション</h2>
   <div class="profile-flex-container">
@@ -83,7 +83,6 @@ const statusData = [
             <div>
               <span class="pos-group-label">サブ適正:</span>
               {player.positionsSub.map((pos) => <span class={`pos-badge sub ${getPositionCategory(pos)}`}>{pos}</span>)}
-              <span class="pos-notice">※適正開放センス等の習得で能力を下げずに運用可能</span>
             </div>
           )}
         </td>

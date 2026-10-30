@@ -1,5 +1,5 @@
 ---
-// src/pages/index.astro (完全版・要素並び替え＆18種ソート完全統合)
+// src/pages/index.astro
 import BaseLayout from '../layouts/BaseLayout.astro';
 import players from '../data/players.json';
 
@@ -8,23 +8,26 @@ function getPositionCategory(pos) {
   if (!pos) return "";
   const p = pos.toUpperCase();
   if (["CF", "ST", "LWG", "RWG", "FW"].includes(p)) return "fw";
-  if (["OMF", "CMF", "LMF", "RMF", "DMF", "RSH", "LSH", "MF"].includes(p)) return "mf";
+  if (["OMF", "CMF", "DMF", "RSH", "LSH", "MF"].includes(p)) return "mf";
   if (["CB", "RSB", "LSB", "DF"].includes(p)) return "df";
   if (["GK"].includes(p)) return "gk";
   return "";
 }
 ---
 
-<BaseLayout pageTitle="ウイコレ攻略wiki | 選手一覧データベース">
-  <h2 style="font-size: 1.3rem; border-left: 5px solid #00bfa5; padding-left: 12px; margin: 0 0 20px 0; color: #111;">選手一覧</h2>
+<BaseLayout pageTitle="ウイコレ攻略wiki | 選手一覧マルチデータベース">
+  <h2 style="font-size: 1.3rem; border-left: 5px solid #00bfa5; padding-left: 12px; margin: 0 0 20px 0; color: #111; font-weight: bold;">選手一覧</h2>
   
   {/* 🔍 マルチ検索 ＆ 18種高機能ソートコントロールパネル */}
   <div style="display: flex; gap: 15px; margin-bottom: 20px; background-color: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; flex-wrap: wrap; align-items: center;">
+    
+    {/* 📋 絞り込み項目セレクト */}
     <div style="display: flex; align-items: center; gap: 8px;">
       <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">絞り込み:</label>
       <select id="filter-type" style="padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.9rem; background-color: #fff; cursor: pointer; font-weight: bold;">
-        <option value="all">絞り込み</option>
+        <option value="all">すべて表示（絞り込みなし）</option>
         <option value="pos">ポジション</option>
+        <option value="mainPos">適正ポジション</option> {/* 💡ご指定通りポジションのすぐ次に配置 */}
         <option value="type">タイプ</option>
         <option value="cardType">シリーズ</option>
         <option value="country">国・所属</option>
@@ -32,14 +35,36 @@ function getPositionCategory(pos) {
       </select>
     </div>
 
+    {/* 🎯 条件入力エリア */}
     <div id="filter-condition-container" style="display: flex; align-items: center; gap: 8px;">
       <span id="cond-default-msg" style="font-size: 0.85rem; color: #888;">項目を選択してください</span>
+      
+      {/* 公式ポジション用 */}
       <select id="cond-pos" style="display: none; padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.9rem; background-color: #fff; font-weight: bold;">
         <option value="fw">FW</option>
         <option value="mf">MF</option>
         <option value="df">DF</option>
         <option value="gk">GK</option>
       </select>
+
+      {/* 💡新設：適正ポジション選択用のサブセレクト（ウイコレ登録全エリア） */}
+      <select id="cond-main-pos" style="display: none; padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.9rem; background-color: #fff; font-weight: bold;">
+        <option value="cf">CF</option>
+        <option value="st">ST</option>
+        <option value="lwg">LWG</option>
+        <option value="rwg">RWG</option>
+        <option value="omf">OMF</option>
+        <option value="cmf">CMF</option>
+        <option value="lsh">LSH</option>
+        <option value="rsh">RSH</option>
+        <option value="dmf">DMF</option>
+        <option value="cb">CB</option>
+        <option value="lsb">LSB</option>
+        <option value="rsb">RSB</option>
+        <option value="gk">GK</option>
+      </select>
+
+      {/* 💡 選手タイプセレクト */}
       <select id="cond-type" style="display: none; padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.9rem; background-color: #fff; font-weight: bold;">
         <option value="テクニック">テクニック</option>
         <option value="パワー">パワー</option>
@@ -47,15 +72,19 @@ function getPositionCategory(pos) {
         <option value="スタミナ">スタミナ</option>
         <option value="バランス">バランス</option>
       </select>
+      
+      {/* 💡 シリーズセレクト */}
       <select id="cond-cardtype" style="display: none; padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.9rem; background-color: #fff; font-weight: bold;">
         <option value="レギュラー">レギュラー</option>
         <option value="ナショナル">ナショナル</option>
         <option value="レジェンド">レジェンド</option>
         <option value="エターナル">エターナル</option>
       </select>
+      
       <input id="cond-keyword" type="text" placeholder="キーワードを入力..." style="display: none; padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.9rem; width: 180px;" />
     </div>
 
+    {/* 🔢 並び替えセレクト */}
     <div style="display: flex; align-items: center; gap: 8px; margin-left: auto;">
       <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">並び替え:</label>
       <select id="sort-order" style="padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.9rem; background-color: #fff; cursor: pointer; font-weight: bold;">
@@ -86,20 +115,21 @@ function getPositionCategory(pos) {
     {players.map((player) => {
       let rowStyle = "display: flex; align-items: center; padding: 14px 20px; flex-wrap: wrap; gap: 15px; transition: opacity 0.2s; border-bottom: 1px solid #e1e4e6;";
       
-      const firstPos = player.positionsMain && player.positionsMain.length > 0 ? player.positionsMain[0].toUpperCase() : "";
+      const currentPos = player.position ? player.position.toUpperCase() : "";
       let pColor = "";
-      if (["CF", "ST", "LWG", "RWG", "FW"].includes(firstPos)) pColor = "bg-fw";
-      if (["OMF", "CMF", "LMF", "RMF", "DMF", "RSH", "LSH", "MF"].includes(firstPos)) pColor = "bg-mf";
-      if (["CB", "RSB", "LSB", "DF"].includes(firstPos)) pColor = "bg-df";
-      if (["GK"].includes(firstPos)) pColor = "bg-gk";
+      if (["CF", "ST", "LWG", "RWG", "FW"].includes(currentPos)) pColor = "bg-fw";
+      if (["OMF", "CMF", "DMF", "RSH", "LSH", "MF"].includes(currentPos)) pColor = "bg-mf";
+      if (["CB", "RSB", "LSB", "DF"].includes(currentPos)) pColor = "bg-df";
+      if (["GK"].includes(currentPos)) pColor = "bg-gk";
 
       if (pColor === "bg-fw") rowStyle += " background-color: #fff5f5; border-bottom-color: #fbc4c4;"; 
       if (pColor === "bg-mf") rowStyle += " background-color: #f4fbf7; border-bottom-color: #c2ecd7;"; 
       if (pColor === "bg-df") rowStyle += " background-color: #f4f9fd; border-bottom-color: #c9e3f6;"; 
       if (pColor === "bg-gk") rowStyle += " background-color: #fffdf2; border-bottom-color: #f9f0c2;"; 
 
-      const firstPosCat = getPositionCategory(firstPos);
+      const mainPosCat = getPositionCategory(currentPos);
       const allSkills = [...(player.specialSkills || []), ...(player.selectSkills || [])].join(',');
+      const mainPositionsStr = (player.positionsMain || []).join(',').toLowerCase();
 
       const k = player.status && player.status.kira_lv80 ? player.status.kira_lv80 : {};
       const ofe = Number(k.ofe) || 0;
@@ -116,7 +146,8 @@ function getPositionCategory(pos) {
           href={`/players/${player.id}`} 
           class="player-list-item" 
           data-grade={player.grade} 
-          data-pos={firstPosCat} 
+          data-pos={mainPosCat} 
+          data-main-positions={mainPositionsStr}
           data-type={player.type} 
           data-skills={allSkills} 
           data-country={player.country} 
@@ -126,22 +157,13 @@ function getPositionCategory(pos) {
           data-ofe={ofe} data-tec={tec} data-sta={sta} data-def={def} data-pow={pow} data-spd={spd}
           style="text-decoration: none; color: inherit; display: block;"
         >
-          <div class="player-row-content">
-            {/* ① グレード表記 */}
+          <div class="player-row-content" style={rowStyle}>
             <span class="player-grade-badge">{player.grade}</span>
-            
-            {/* ② ポジション表記（ペレなら「FW」、ペドリなら「MF」のバッジを1つだけ表示） */}
             <div class="player-pos-container">
-              <span class={`badge-item ${getPositionCategory(player.position)}`}>{player.position}</span>
+              <span class={`badge-item ${mainPosCat}`}>{player.position}</span>
             </div>
-            
-            {/* ③ 名前 */}
             <h3 class="player-name-text">{player.name}</h3>
-            
-            {/* ④ シリーズ */}
             <span class="player-series-text">({player.cardType})</span>
-            
-            {/* ⑤ 所持スキル（右揃えに固定） */}
             <div class="player-skill-text">
               {[...(player.specialSkills || []), ...(player.selectSkills || [])].join(' / ')}
             </div>
@@ -166,11 +188,12 @@ function getPositionCategory(pos) {
     const noMsg = document.getElementById('no-players-msg');
     const msgDefault = document.getElementById('cond-default-msg');
     const selectPos = document.getElementById('cond-pos') as HTMLSelectElement;
+    const selectMainPos = document.getElementById('cond-main-pos') as HTMLSelectElement;
     const selectType = document.getElementById('cond-type') as HTMLSelectElement;
     const selectCardType = document.getElementById('cond-cardtype') as HTMLSelectElement;
     const inputKeyword = document.getElementById('cond-keyword') as HTMLInputElement;
 
-    if (!filterType || !sortOrder || !wrapper || !noMsg || !msgDefault || !selectPos || !selectType || !selectCardType || !inputKeyword) return;
+    if (!filterType || !sortOrder || !wrapper || !noMsg || !msgDefault || !selectPos || !selectMainPos || !selectType || !selectCardType || !inputKeyword) return;
 
     const initialItems = Array.from(wrapper.querySelectorAll('.player-list-item')) as HTMLElement[];
 
@@ -178,12 +201,14 @@ function getPositionCategory(pos) {
       const type = filterType.value;
       msgDefault.style.display = 'none';
       selectPos.style.display = 'none';
+      selectMainPos.style.display = 'none';
       selectType.style.display = 'none';
       selectCardType.style.display = 'none';
       inputKeyword.style.display = 'none';
 
       if (type === 'all') msgDefault.style.display = 'inline-block';
       if (type === 'pos') selectPos.style.display = 'inline-block';
+      if (type === 'mainPos') selectMainPos.style.display = 'inline-block';
       if (type === 'type') selectType.style.display = 'inline-block';
       if (type === 'cardType') selectCardType.style.display = 'inline-block';
       if (type === 'skill' || type === 'country') {
@@ -203,17 +228,14 @@ function getPositionCategory(pos) {
         let match = false;
         if (type === 'all') match = true;
         else if (type === 'pos') match = item.getAttribute('data-pos') === selectPos.value;
+        else if (type === 'mainPos') match = (item.getAttribute('data-main-positions') || "").split(',').includes(selectMainPos.value);
         else if (type === 'type') match = item.getAttribute('data-type') === selectType.value;
         else if (type === 'cardType') match = (item.getAttribute('data-cardtype') || "").includes(selectCardType.value);
         else if (type === 'skill') match = (item.getAttribute('data-skills') || "").toLowerCase().includes(inputKeyword.value.toLowerCase().trim());
         else if (type === 'country') match = (item.getAttribute('data-country') || "").toLowerCase().includes(inputKeyword.value.toLowerCase().trim());
 
-        if (match) {
-          item.style.display = 'block';
-          visibleCount++;
-        } else {
-          item.style.display = 'none';
-        }
+        if (match) { item.style.display = 'block'; visibleCount++; }
+        else { item.style.display = 'none'; }
       });
 
       noMsg.style.display = visibleCount === 0 ? 'block' : 'none';
@@ -269,13 +291,13 @@ function getPositionCategory(pos) {
 
     filterType.addEventListener('change', handleTypeChange);
     selectPos.addEventListener('change', updateList);
+    selectMainPos.addEventListener('change', updateList);
     selectType.addEventListener('change', updateList);
     selectCardType.addEventListener('change', updateList);
     inputKeyword.addEventListener('input', updateList);
     sortOrder.addEventListener('change', updateList);
 
     updateList();
-
     const navHome = document.getElementById('nav-home');
     if (navHome) navHome.classList.add('active');
   }
