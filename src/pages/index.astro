@@ -126,33 +126,23 @@ function getPositionCategory(pos) {
           data-ofe={ofe} data-tec={tec} data-sta={sta} data-def={def} data-pow={pow} data-spd={spd}
           style="text-decoration: none; color: inherit; display: block;"
         >
-          <div style={rowStyle}>
+          <div class="player-row-content">
             {/* ① グレード表記 */}
-            <span style="background-color: #f39c12; color: #ffffff; font-weight: bold; font-size: 0.85rem; padding: 3px 8px; border-radius: 4px; min-width: 45px; text-align: center;">
-              {player.grade}
-            </span>
+            <span class="player-grade-badge">{player.grade}</span>
             
-            {/* ② 名前 */}
-            <h3 style="font-size: 1.05rem; font-weight: bold; color: #0073e6; margin: 0;">{player.name}</h3>
-            
-            {/* ③ シリーズ（カードタイプ） */}
-            <span style="font-size: 0.8rem; color: #888888;">({player.cardType})</span>
-            
-            {/* ④ 適正ポジション（公式カラーバッジ） */}
-            <div style="display: flex; gap: 4px; align-items: center;">
-              {player.positionsMain.map((pos) => {
-                const cat = getPositionCategory(pos);
-                let badgeStyle = "color: #ffffff; font-size: 0.75rem; font-weight: bold; padding: 2px 6px; border-radius: 4px; min-width: 32px; text-align: center;";
-                if (cat === "fw") badgeStyle += " background-color: #e74c3c;";
-                if (cat === "mf") badgeStyle += " background-color: #2ecc71;";
-                if (cat === "df") badgeStyle += " background-color: #3498db;";
-                if (cat === "gk") badgeStyle += " background-color: #f1c40f; color: #000000;";
-                return <span style={badgeStyle}>{pos}</span>;
-              })}
+            {/* ② ポジション表記（ペレなら「FW」、ペドリなら「MF」のバッジを1つだけ表示） */}
+            <div class="player-pos-container">
+              <span class={`badge-item ${getPositionCategory(player.position)}`}>{player.position}</span>
             </div>
             
+            {/* ③ 名前 */}
+            <h3 class="player-name-text">{player.name}</h3>
+            
+            {/* ④ シリーズ */}
+            <span class="player-series-text">({player.cardType})</span>
+            
             {/* ⑤ 所持スキル（右揃えに固定） */}
-            <div style="font-size: 0.85rem; color: #666666; text-align: right; margin-left: auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 320px;">
+            <div class="player-skill-text">
               {[...(player.specialSkills || []), ...(player.selectSkills || [])].join(' / ')}
             </div>
           </div>
@@ -161,11 +151,13 @@ function getPositionCategory(pos) {
     })}
   </div>
 
+  {/* 📭 絞り込み結果がゼロの時のセーフメッセージ */}
   <div id="no-players-msg" style="display: none; text-align: center; padding: 40px; border: 1px dashed #cbd5e1; border-radius: 8px; color: #64748b; background-color: #f8fafc; font-weight: bold; margin-top: 15px;">
     🔍 条件に一致する選手は見つかりませんでした。
   </div>
 </BaseLayout>
 
+{/* 🧠 18種超高機能リアルタイムソート＆マルチフィルター制御スクリプト */}
 <script>
   function initAdvancedSearch() {
     const filterType = document.getElementById('filter-type') as HTMLSelectElement;
@@ -179,6 +171,7 @@ function getPositionCategory(pos) {
     const inputKeyword = document.getElementById('cond-keyword') as HTMLInputElement;
 
     if (!filterType || !sortOrder || !wrapper || !noMsg || !msgDefault || !selectPos || !selectType || !selectCardType || !inputKeyword) return;
+
     const initialItems = Array.from(wrapper.querySelectorAll('.player-list-item')) as HTMLElement[];
 
     function handleTypeChange() {
@@ -215,14 +208,19 @@ function getPositionCategory(pos) {
         else if (type === 'skill') match = (item.getAttribute('data-skills') || "").toLowerCase().includes(inputKeyword.value.toLowerCase().trim());
         else if (type === 'country') match = (item.getAttribute('data-country') || "").toLowerCase().includes(inputKeyword.value.toLowerCase().trim());
 
-        if (match) { item.style.display = 'block'; visibleCount++; }
-        else { item.style.display = 'none'; }
+        if (match) {
+          item.style.display = 'block';
+          visibleCount++;
+        } else {
+          item.style.display = 'none';
+        }
       });
 
       noMsg.style.display = visibleCount === 0 ? 'block' : 'none';
       wrapper.style.display = visibleCount === 0 ? 'none' : 'block';
 
       const currentItems = Array.from(wrapper.querySelectorAll('.player-list-item')) as HTMLElement[];
+      
       currentItems.sort((a, b) => {
         const gradeA = parseInt(a.getAttribute('data-grade') || '0', 10);
         const gradeB = parseInt(b.getAttribute('data-grade') || '0', 10);
@@ -265,6 +263,7 @@ function getPositionCategory(pos) {
           default:           return gradeB - gradeA;
         }
       });
+
       currentItems.forEach(item => wrapper.appendChild(item));
     }
 
@@ -276,6 +275,7 @@ function getPositionCategory(pos) {
     sortOrder.addEventListener('change', updateList);
 
     updateList();
+
     const navHome = document.getElementById('nav-home');
     if (navHome) navHome.classList.add('active');
   }
@@ -285,6 +285,126 @@ function getPositionCategory(pos) {
 </script>
 
 <style is:global>
-  .player-list-item { transition: opacity 0.15s; }
-  .player-list-item:hover { opacity: 0.85; box-shadow: inset 0 0 100px rgba(0,0,0,0.02); }
+  /* 🏷️ 選手一覧ベースデザイン */
+  .db-list-container {
+    border: 1px solid #e1e4e6;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #ffffff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+  }
+
+  .player-list-item {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    transition: opacity 0.15s;
+  }
+  .player-list-item:hover {
+    opacity: 0.85;
+    box-shadow: inset 0 0 100px rgba(0,0,0,0.01);
+  }
+
+  /* 💻 PC版レイアウト定義（一直線に美しく配置） */
+  .player-row-content {
+    display: flex;
+    align-items: center;
+    padding: 14px 20px;
+    gap: 15px;
+    border-bottom: 1px solid #e1e4e6;
+  }
+
+  .player-grade-badge {
+    background-color: #f39c12;
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 0.85rem;
+    padding: 3px 8px;
+    border-radius: 4px;
+    min-width: 45px;
+    text-align: center;
+    display: inline-block;
+    flex-shrink: 0;
+  }
+
+  .player-name-text {
+    font-size: 1.05rem;
+    font-weight: bold;
+    color: #0073e6;
+    margin: 0;
+  }
+
+  .player-series-text {
+    font-size: 0.8rem;
+    color: #888888;
+    white-space: nowrap;
+  }
+
+  .player-pos-container {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  /* ポジションカラーバッジの共通定義 */
+  .badge-item {
+    color: #ffffff;
+    font-size: 0.75rem;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 4px;
+    min-width: 32px;
+    text-align: center;
+    display: inline-block;
+  }
+  .badge-item.fw { background-color: #e74c3c; }
+  .badge-item.mf { background-color: #2ecc71; }
+  .badge-item.df { background-color: #3498db; }
+  .badge-item.gk { background-color: #f1c40f; color: #000000; }
+
+  /* ⚔️ 所持スキル（PC時は右揃えに固定） */
+  .player-skill-text {
+    font-size: 0.85rem;
+    color: #666666;
+    text-align: right;
+    margin-left: auto;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 320px;
+  }
+
+  /* 📱 スマホ表示用レイアウト定義（画面幅768px以下で自動で2段折りたたみ） */
+  @media (max-width: 768px) {
+    .player-row-content {
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 12px 15px;
+      gap: 6px;
+    }
+
+    .player-name-text,
+    .player-series-text {
+      white-space: normal !important;
+      word-break: break-all !important;
+      line-height: 1.4;
+    }
+
+    .player-pos-container {
+      margin-top: 2px;
+    }
+
+    .player-skill-text {
+      text-align: left;
+      margin-left: 0;
+      width: 100%;
+      max-width: 100%;
+      border-top: 1px dashed #e1e4e6;
+      padding-top: 6px;
+      color: #777777;
+      white-space: normal !important;
+      word-break: break-all !important;
+    }
+  }
 </style>
