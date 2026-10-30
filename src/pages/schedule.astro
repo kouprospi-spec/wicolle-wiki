@@ -1,44 +1,48 @@
 ---
-// src/pages/schedule.astro (日別カレンダーベース・交換所バッジ追加・前半部)
+// src/pages/schedule.astro (冒頭フロントマター・日本時間時差バグ完全修正版)
 import BaseLayout from '../layouts/BaseLayout.astro';
 import scheduleList from '../data/schedule.json';
 
-// 📅 今日の日付（2026/10/30）を取得し、時分秒をリセット [1.2]
-const today = new Date();
-today.setHours(0, 0, 0, 0);
+// 📅 現在時刻から日本時間（JST）の年月日を正確にピンポイント取得
+const nowJST = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
+const todayY = nowJST.getFullYear();
+const todayM = nowJST.getMonth();
+const todayD = nowJST.getDate();
 
-// 今週の日曜日（週の初め）を正確に計算 [1.2]
+// 時分秒を完全に排除し、純粋なJSTの「今日（10/31）」のオブジェクトを生成
+const today = new Date(todayY, todayM, todayD, 0, 0, 0, 0);
+
+// 今週の日曜日（カレンダーの初め）を今日から逆算して正確に固定
 const dayOfWeek = today.getDay();
-const diffToSunday = -dayOfWeek;
 const thisSunday = new Date(today);
-thisSunday.setDate(today.getDate() + diffToSunday);
+thisSunday.setDate(today.getDate() - dayOfWeek);
 
-// 📐 安全に日付オブジェクトを生成する関数（時差・空欄バグ回避） [1.2]
+// 📐 安全に日付オブジェクトを生成する関数（時差・空欄バグ回避）
 function parseLocalDate(dateStr) {
   if (!dateStr || dateStr.trim() === "") return null;
   const parts = dateStr.split('-');
   if (parts.length !== 3) return null;
+  // 時差の影響を受けないよう、ローカルのタイムゾーンで日付を固定生成
   return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]), 0, 0, 0, 0);
 }
 
-// ⏳ 終了日までの残り日数を計算してアテンション用の文字を返す関数 [1.2]
+// ⏳ 終了日までの残り日数を計算してアテンション用の文字を返す関数
 function getAttentionText(endDateStr, currentDayObj) {
-  if (!endDateStr) return null; // 終了日の指定がない長期イベントは対象外 [1.2]
+  if (!endDateStr) return null;
   
   const endDay = parseLocalDate(endDateStr);
   if (!endDay) return null;
 
-  // ミリ秒の差分から日数（24時間換算）を計算 [1.2]
   const diffTime = endDay.getTime() - currentDayObj.getTime();
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
   if (diffDays === 0) return "本日終了";
   if (diffDays > 0 && diffDays <= 3) return `あと ${diffDays} 日`;
   
-  return null; // 4日以上ある場合は何も表示しない [1.2]
+  return null;
 }
 
-// 📐 4週間分の週タブと、その中の7日間（日〜土）のデータを生成 [1.2]
+// 📐 4週間分の週タブと、その中の7日間（日〜土）のデータを生成
 const weeks = Array.from({ length: 4 }, (_, weekIdx) => {
   const weekStart = new Date(thisSunday);
   weekStart.setDate(thisSunday.getDate() + (weekIdx * 7));
@@ -59,7 +63,7 @@ const weeks = Array.from({ length: 4 }, (_, weekIdx) => {
     const date = currentDay.getDate();
     const dayName = ["日", "月", "火", "水", "木", "金", "土"][currentDay.getDay()];
     
-    // 🔍 この1日に期間が重なっているデータをJSONから自動抽出 [1.2]
+    // 🔍 この1日に期間が重なっているデータをJSONから自動抽出
     const dayItems = scheduleList.filter(item => {
       const itemStart = parseLocalDate(item.startDate);
       if (!itemStart) return false;
@@ -68,7 +72,6 @@ const weeks = Array.from({ length: 4 }, (_, weekIdx) => {
       
       return currentDay.getTime() >= itemStart.getTime() && currentDay.getTime() <= itemEnd.getTime();
     }).map(item => {
-      // 💡 各イベントごとに、その「表示されている日付時点」での残り日数を計算して合体 [1.2]
       return {
         ...item,
         attention: getAttentionText(item.endDate, currentDay)

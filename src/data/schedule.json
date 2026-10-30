@@ -14,6 +14,13 @@
     "badgeText": "交換所"
   },
   {
+    "title": "ネクサスオークション",
+    "type": "キャンペーン",
+    "startDate": "2026-11-02",
+    "endDate": "",
+    "badgeText": "キャンペーン"
+  },
+  {
     "title": "9th Anniversary 第1弾 無料11連ガチャ",
     "type": "gacha",
     "startDate": "2026-10-31",
