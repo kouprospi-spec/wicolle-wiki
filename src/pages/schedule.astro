@@ -1,46 +1,26 @@
 ---
-// src/pages/schedule.astro (冒頭フロントマター・日本時間時差バグ完全修正版)
+// src/pages/schedule.astro (超精密3階層並び替えソートロジック搭載・前半部)
 import BaseLayout from '../layouts/BaseLayout.astro';
 import scheduleList from '../data/schedule.json';
 
-// 📅 現在時刻から日本時間（JST）の年月日を正確にピンポイント取得
-const nowJST = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
-const todayY = nowJST.getFullYear();
-const todayM = nowJST.getMonth();
-const todayD = nowJST.getDate();
-
-// 時分秒を完全に排除し、純粋なJSTの「今日（10/31）」のオブジェクトを生成
-const today = new Date(todayY, todayM, todayD, 0, 0, 0, 0);
-
-// 今週の日曜日（カレンダーの初め）を今日から逆算して正確に固定
-const dayOfWeek = today.getDay();
-const thisSunday = new Date(today);
-thisSunday.setDate(today.getDate() - dayOfWeek);
-
-// 📐 安全に日付オブジェクトを生成する関数（時差・空欄バグ回避）
-function parseLocalDate(dateStr) {
+// 📐 安全に日時オブジェクトを正確に生成する関数
+function parseLocalDateTime(dateStr, timeStr) {
   if (!dateStr || dateStr.trim() === "") return null;
   const parts = dateStr.split('-');
   if (parts.length !== 3) return null;
-  // 時差の影響を受けないよう、ローカルのタイムゾーンで日付を固定生成
-  return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]), 0, 0, 0, 0);
+  
+  const tParts = (timeStr && timeStr.trim() !== "") ? timeStr.split(':') : ["00", "00"];
+  return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]), Number(tParts[0]), Number(tParts[1]), 0, 0);
 }
 
-// ⏳ 終了日までの残り日数を計算してアテンション用の文字を返す関数
-function getAttentionText(endDateStr, currentDayObj) {
-  if (!endDateStr) return null;
-  
-  const endDay = parseLocalDate(endDateStr);
-  if (!endDay) return null;
+// 📅 現在時刻から日本時間（JST）の基準日を正確に取得
+const nowJST = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
+const today = new Date(nowJST.getFullYear(), nowJST.getMonth(), nowJST.getDate(), 0, 0, 0, 0);
 
-  const diffTime = endDay.getTime() - currentDayObj.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-  if (diffDays === 0) return "本日終了";
-  if (diffDays > 0 && diffDays <= 3) return `あと ${diffDays} 日`;
-  
-  return null;
-}
+// 今週の日曜日（カレンダーの初め）を今日から逆算して固定
+const dayOfWeek = today.getDay();
+const thisSunday = new Date(today);
+thisSunday.setDate(today.getDate() - dayOfWeek);
 
 // 📐 4週間分の週タブと、その中の7日間（日〜土）のデータを生成
 const weeks = Array.from({ length: 4 }, (_, weekIdx) => {
@@ -63,111 +43,157 @@ const weeks = Array.from({ length: 4 }, (_, weekIdx) => {
     const date = currentDay.getDate();
     const dayName = ["日", "月", "火", "水", "木", "金", "土"][currentDay.getDay()];
     
-    // 🔍 この1日に期間が重なっているデータをJSONから自動抽出
-    const dayItems = scheduleList.filter(item => {
-      const itemStart = parseLocalDate(item.startDate);
+    const yyyy = currentDay.getFullYear();
+    const mm = String(currentDay.getMonth() + 1).padStart(2, '0');
+    const dd = String(currentDay.getDate()).padStart(2, '0');
+    const dateFormattedStr = `${yyyy}-${mm}-${dd}`;
+    
+    // 🔍 この1日に期間が重なっているデータを自動抽出
+    const rawDayItems = scheduleList.filter(item => {
+      const itemStart = parseLocalDateTime(item.startDate, item.startTime);
       if (!itemStart) return false;
       
-      const itemEnd = item.endDate ? parseLocalDate(item.endDate) : new Date(2099, 11, 31);
+      const itemEnd = item.endDate ? parseLocalDateTime(item.endDate, item.endTime) : new Date(2099, 11, 31, 23, 59, 59);
       
-      return currentDay.getTime() >= itemStart.getTime() && currentDay.getTime() <= itemEnd.getTime();
-    }).map(item => {
-      return {
-        ...item,
-        attention: getAttentionText(item.endDate, currentDay)
-      };
+      const dayStart = currentDay.getTime();
+      const dayEnd = currentDay.getTime() + (24 * 60 * 60 * 1000) - 1;
+      
+      return itemStart.getTime() <= dayEnd && itemEnd.getTime() >= dayStart;
+    });
+
+    // 💡 3段階優先度ソートアルゴリズムを完全に適用
+    const sortedDayItems = [...rawDayItems].sort((a, b) => {
+      const isAStart = dateFormattedStr === a.startDate;
+      const isAEnd = dateFormattedStr === a.endDate;
+      const isBStart = dateFormattedStr === b.startDate;
+      const isBEnd = dateFormattedStr === b.endDate;
+
+      // 【第1階層】日程グループ判定（終わるもの=3, 始まるもの=2, それ以外=1）
+      let scoreA = 1;
+      if (isAEnd && !isAStart) scoreA = 3;
+      else if (isAStart) scoreA = 2;
+
+      let scoreB = 1;
+      if (isBEnd && !isBStart) scoreB = 3;
+      else if (isBStart) scoreB = 2;
+
+      if (scoreA !== scoreB) return scoreB - scoreA;
+
+      // 【第2階層】タイプ別優先度（gacha=4, event=3, campaign=2, exchange=1）
+      const typeOrder = { "gacha": 4, "event": 3, "campaign": 2, "exchange": 1 };
+      const typeScoreA = typeOrder[a.type] || 0;
+      const typeScoreB = typeOrder[b.type] || 0;
+
+      if (typeScoreA !== typeScoreB) return typeScoreB - typeScoreA;
+
+      // 【第3階層】💡同じタイプ内での時間優先ソート（早く終わるもの、早く始まるもの）
+      if (scoreA === 3) {
+        // 終了グループ：早く終わる時間（endTime）を最優先
+        const timeA = a.endTime || "23:59";
+        const timeB = b.endTime || "23:59";
+        return timeA.localeCompare(timeB);
+      } else if (scoreA === 2) {
+        // 開始グループ：早く始まる時間（startTime）を最優先
+        const timeA = a.startTime || "00:00";
+        const timeB = b.startTime || "00:00";
+        return timeA.localeCompare(timeB);
+      } else {
+        // それ以外：終了時間が早いものを優先表示して整理
+        const endStrA = a.endDate ? `${a.endDate} ${a.endTime || "23:59"}` : "2099-12-31 23:59";
+        const endStrB = b.endDate ? `${b.endDate} ${b.endTime || "23:59"}` : "2099-12-31 23:59";
+        return endStrA.localeCompare(endStrB);
+      }
     });
 
     return {
+      dateStr: dateFormattedStr,
       dateLabel: `${month}/${date}(${dayName})`,
       isToday: currentDay.getTime() === today.getTime(),
       dayOfWeek: currentDay.getDay(),
-      items: dayItems
+      items: sortedDayItems
     };
   });
 
   return {
     index: weekIdx,
     tabLabel: weekIdx === 0 ? `今週 (${rangeStr})` : rangeStr,
-    dateRange: `${startStr} ～ ${endStr}`,
     days: daysInWeek
   };
 });
 ---
 
 <BaseLayout pageTitle="ウイコレ攻略wiki | 日別イベントスケジュール">
-  <h2 style="font-size: 1.3rem; border-left: 5px solid #00bfa5; padding-left: 12px; margin: 0 0 20px 0; color: #111;">今後のイベント・ガチャスケジュール</h2>
-  <p style="font-size: 0.9rem; color: #666; margin-bottom: 25px;">イベント・ガチャ・交換所ごとに開始日と終了日を指定することで、該当する日のスケジュールに自動で表示されます。</p>
+  <h2 style="font-size: 1.3rem; border-left: 5px solid #00bfa5; padding-left: 12px; margin: 0 0 20px 0; color: #111; font-weight: bold;">今後のイベント・ガチャスケジュール</h2>
+  <p style="font-size: 0.9rem; color: #666; margin-bottom: 25px;">イベント・ガチャ・交換所のスケジュールです。同じタイプ内でも、開始・終了時刻が早いものが優先整列されます。</p>
 
-  {/* 🔘 週切り替えタブナビゲーション [1.2] */}
+  {/* 🔘 週切り替えタブ */}
   <div class="schedule-tab-container" style="display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px;">
     {weeks.map((week) => (
-      <button 
-        class={`schedule-tab-btn ${week.index === 0 ? 'active' : ''}`} 
-        data-week-index={week.index}
-        style="white-space: nowrap;"
-      >
+      <button class={`schedule-tab-btn ${week.index === 0 ? 'active' : ''}`} data-week-index={week.index} style="white-space: nowrap;">
         {week.tabLabel}
       </button>
     ))}
   </div>
 
-  {/* 📋 各週のスケジュール（日別タイムライン）エリア [1.2] */}
+  {/* 📋 カレンダーエリア */}
   <div class="schedule-content-container">
     {weeks.map((week) => (
-      <div 
-        class="schedule-week-panel" 
-        id={`week-panel-${week.index}`}
-        style={week.index === 0 ? "display: block;" : "display: none;"}
-      >
+      <div class="schedule-week-panel" id={`week-panel-${week.index}`} style={week.index === 0 ? "display: block;" : "display: none;"}>
         <div class="daily-schedule-container" style="display: flex; flex-direction: column; gap: 12px;">
           {week.days.map((day) => {
             let dateBoxStyle = "width: 110px; padding: 12px; text-align: center; font-weight: bold; font-size: 0.95rem; border-right: 1px solid #e1e4e6; display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0;";
-            if (day.isToday) {
-              dateBoxStyle += " background-color: #00bfa5; color: #ffffff;";
-            } else if (day.dayOfWeek === 6) {
-              dateBoxStyle += " background-color: #eef6ff; color: #2b6cb0;";
-            } else if (day.dayOfWeek === 0) {
-              dateBoxStyle += " background-color: #fff5f5; color: #c53030;";
-            } else {
-              dateBoxStyle += " background-color: #f7f9fa; color: #333333;";
-            }
+            if (day.isToday) dateBoxStyle += " background-color: #00bfa5; color: #ffffff;";
+            else if (day.dayOfWeek === 6) dateBoxStyle += " background-color: #eef6ff; color: #2b6cb0;";
+            else if (day.dayOfWeek === 0) dateBoxStyle += " background-color: #fff5f5; color: #c53030;";
+            else dateBoxStyle += " background-color: #f7f9fa; color: #333333;";
 
             return (
               <div class="daily-row" style="display: flex; border: 1px solid #e1e4e6; border-radius: 6px; background-color: #ffffff; overflow: hidden; min-height: 55px; box-shadow: 0 1px 2px rgba(0,0,0,0.02);">
-                {/* 左側：日付ラベル枠 [1.2] */}
                 <div style={dateBoxStyle}>
                   {day.isToday && <span style="font-size: 0.65rem; display: block; margin-bottom: 2px; font-weight: normal; letter-spacing: 1px; color: #fff;">TODAY</span>}
                   {day.dateLabel}
                 </div>
 
-                {/* 右側：その日のイベント・ガチャ・キャンペーン・交換所一覧 [1.2] */}
                 <div style="padding: 12px 18px; display: flex; flex-direction: column; gap: 8px; justify-content: center; flex: 1;">
                   {day.items.length > 0 ? (
-                    day.items.map((item) => (
-                      <div style="display: flex; align-items: center; gap: 10px; font-size: 0.9rem; flex-wrap: wrap;">
-                        {/* JSON内の badgeText と type に連動したカラーバッジ [1.2] */}
-                        <span class={`type-badge ${item.type}`} style="font-size: 0.75rem; font-weight: bold; padding: 2px 6px; border-radius: 4px; min-width: 80px; text-align: center; color: #ffffff; display: inline-block;">
-                          {item.badgeText || "お知らせ"}
-                        </span>
-                        
-                        {/* ガチャ(gacha)の場合はタイトルを青文字リンクにしてガチャページへ直接ジャンプ可能 [1.2] */}
-                        {item.type === 'gacha' ? (
-                          <a href="/gacha-info" class="gacha-schedule-link" style="font-weight: bold; color: #0073e6; text-decoration: none; line-height: 1.4;">
-                            {item.title} <span style="font-size: 0.75rem; font-weight: normal; color: #999;">＞</span>
-                          </a>
-                        ) : (
-                          <span style="font-weight: bold; color: #222222; line-height: 1.4;">{item.title}</span>
-                        )}
-
-                        {/* 💡 残り3日以内になったイベントの横にGameWith風の赤いアテンション警告バッジを自動点点灯 [1.2] */}
-                        {item.attention && (
-                          <span class="attention-badge" style="background-color: #ea2027; color: #ffffff; font-size: 0.7rem; font-weight: bold; padding: 2px 6px; border-radius: 4px; margin-left: 5px; animation: pulseEffect 2s infinite;">
-                            {item.attention}
+                    day.items.map((item) => {
+                      const isStartDate = day.dateStr === item.startDate;
+                      const isEndDate = day.dateStr === item.endDate;
+                      return (
+                        <div style="display: flex; align-items: center; gap: 10px; font-size: 0.9rem; flex-wrap: wrap;">
+                          <span class={`type-badge ${item.type}`} style="font-size: 0.75rem; font-weight: bold; padding: 2px 6px; border-radius: 4px; min-width: 80px; text-align: center; color: #ffffff; display: inline-block;">
+                            {item.badgeText || "お知らせ"}
                           </span>
-                        )}
-                      </div>
-                    ))
+                          
+                          {item.type === 'gacha' ? (
+                            <a href="/gacha-info" class="gacha-schedule-link" style="font-weight: bold; color: #0073e6; text-decoration: none; line-height: 1.4;">
+                              {item.title} <span style="font-size: 0.75rem; font-weight: normal; color: #999;">＞</span>
+                            </a>
+                          ) : (
+                            <span style="font-weight: bold; color: #222222; line-height: 1.4;">{item.title}</span>
+                          )}
+
+                          {/* ⏱️ 開始日・終了日の時間出し分けテキスト */}
+                          {isStartDate && !isEndDate && (
+                            <span style="font-size: 0.8rem; color: #2ecc71; font-weight: bold;">({item.startTime || "00:00"} 開始)</span>
+                          )}
+                          {isEndDate && !isStartDate && (
+                            <span style="font-size: 0.8rem; color: #e74c3c; font-weight: bold;">({item.endTime || "23:59"} 終了)</span>
+                          )}
+                          {isStartDate && isEndDate && (
+                            <span style="font-size: 0.8rem; color: #e67e22; font-weight: bold;">({item.startTime || "00:00"}〜{item.endTime || "23:59"})</span>
+                          )}
+
+                          <span 
+                            class="live-countdown-badge" 
+                            data-start-datetime={item.startDate ? `${item.startDate}T${item.startTime || "00:00"}:00` : ""}
+                            data-end-datetime={item.endDate ? `${item.endDate}T${item.endTime || "23:59"}:00` : ""}
+                            style="color: #ffffff; font-size: 0.7rem; font-weight: bold; padding: 2px 6px; border-radius: 4px; margin-left: 5px; display: none;"
+                          >
+                          </span>
+                        </div>
+                      );
+                    })
                   ) : (
                     <span style="color: #94a3b8; font-size: 0.85rem; font-style: italic;">予定なし</span>
                   )}
@@ -181,16 +207,16 @@ const weeks = Array.from({ length: 4 }, (_, weekIdx) => {
   </div>
 </BaseLayout>
 
-{/* 🧠 タブ制御スクリプト [1.2] */}
+{/* 🧠 タブ制御 ＆ リアルタイム秒単位カウントダウンエンジン（常設は自動非表示） */}
 <script>
-  function initScheduleTabs() {
+  function initScheduleEngine() {
+    // 1. タブ切り替えロジック
     const buttons = document.querySelectorAll('.schedule-tab-btn');
     const panels = document.querySelectorAll('.schedule-week-panel');
 
     buttons.forEach(button => {
       button.addEventListener('click', () => {
         const targetIndex = button.getAttribute('data-week-index');
-
         buttons.forEach(btn => btn.classList.remove('active'));
         button.classList.add('active');
 
@@ -204,29 +230,99 @@ const weeks = Array.from({ length: 4 }, (_, weekIdx) => {
         });
       });
     });
+
+    // 2. ⏳ 超リアルタイムカウントダウン処理関数
+    function updateCountdowns() {
+      // 日本時間（JST）の現在時刻を正確にミリ秒で取得
+      const nowJST = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
+      const nowTime = nowJST.getTime();
+
+      const badges = document.querySelectorAll('.live-countdown-badge');
+      badges.forEach(badge => {
+        const el = badge as HTMLElement;
+        const startStr = el.getAttribute('data-start-datetime') || '';
+        const endStr = el.getAttribute('data-end-datetime') || '';
+
+        if (!startStr) return;
+
+        // ハイフン区切り等を正しく日時オブジェクトに変換
+        const startTime = new Date(startStr.replace(/-/g, '/')).getTime();
+        const endTime = endStr ? new Date(endStr.replace(/-/g, '/')).getTime() : null;
+
+        // 🔘 常設・終了日未定の場合はカウントダウンを表示しない
+        if (!endTime) {
+          el.style.display = 'none';
+          return;
+        }
+
+        // 状態判定
+        if (nowTime < startTime) {
+          // 開催前
+          const diff = startTime - nowTime;
+          el.innerText = `開始まで ${formatDiff(diff)}`;
+          el.style.backgroundColor = '#3b82f6'; // 開始前：青
+          el.style.display = 'inline-block';
+        } else if (nowTime > endTime) {
+          // 終了済み
+          el.innerText = '終了';
+          el.style.backgroundColor = '#64748b'; // 終了：グレー
+          el.style.display = 'inline-block';
+        } else {
+          // 開催中 ➔ 終了までのカウントダウン
+          const diff = endTime - nowTime;
+          el.innerText = `あと ${formatDiff(diff)}`;
+          el.style.backgroundColor = '#ea2027'; // 開催中：赤
+          el.style.display = 'inline-block';
+        }
+      });
+    }
+
+    // ミリ秒を「〇日 〇時間〇分〇秒」に変換する補助関数
+    function formatDiff(ms: number): string {
+      const totalSecs = Math.floor(ms / 1000);
+      const days = Math.floor(totalSecs / (24 * 60 * 60));
+      const hours = Math.floor((totalSecs % (24 * 60 * 60)) / (60 * 60));
+      const mins = Math.floor((totalSecs % (60 * 60)) / 60);
+      const secs = totalSecs % 60;
+
+      if (days > 0) {
+        return `${days}日 ${hours}時間`;
+      } else if (hours > 0) {
+        return `${hours}時間 ${mins}分`;
+      } else {
+        return `${mins}分 ${secs}秒`;
+      }
+    }
+
+    // 1秒ごとにカウントダウンを動かすタイマーを始動
+    updateCountdowns();
+    const timerId = setInterval(updateCountdowns, 1000);
+
+    // ページ遷移時にタイマーが重複して重くなるのを防ぐクリーンアップ
+    document.addEventListener('astro:before-swap', () => clearInterval(timerId), { once: true });
   }
 
-  initScheduleTabs();
-  document.addEventListener('astro:after-swap', initScheduleTabs);
+  initScheduleEngine();
+  document.addEventListener('astro:after-swap', initScheduleEngine);
 </script>
 
 <style is:global>
-  /* 左メニューの「スケジュール」アクティブ化 [1.2] */
+  /* 左メニューの「スケジュール」アクティブ化 */
   #nav-schedule { font-weight: bold; }
 
   /* 🏷️ badgeText（type）に対応するバッジカラー定義 */
   .type-badge.gacha { background-color: #e74c3c; }       /* ガチャ：赤 */
   .type-badge.event { background-color: #3498db; }       /* イベント：青 */
   .type-badge.campaign { background-color: #2ecc71; }    /* キャンペーン：緑 */
-  .type-badge.exchange { background-color: #e84393; }    /* 💡新設：交換所（マゼンタピンク） */
+  .type-badge.exchange { background-color: #e84393; }    /* 交換所：マゼンタピンク */
 
-  /* 🔗 ガチャスケジュールリンクのホバー演出 [1.2] */
+  /* 🔗 ガチャスケジュールリンクのホバー演出 */
   .gacha-schedule-link:hover {
     color: #0056b3 !important;
     text-decoration: underline !important;
   }
 
-  /* 🔘 タブボタン装飾 [1.2] */
+  /* 🔘 タブボタン装飾 */
   .schedule-tab-btn {
     background-color: #ffffff;
     border: 1px solid #cbd5e1;
@@ -247,17 +343,10 @@ const weeks = Array.from({ length: 4 }, (_, weekIdx) => {
     color: #ffffff;
   }
 
-  /* 行ホバー時のハイライト効果 [1.2] */
+  /* 行ホバー時のハイライト効果 */
   .daily-row { transition: border-color 0.15s, box-shadow 0.15s; }
   .daily-row:hover {
     border-color: #00bfa5 !important;
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.05) !important;
-  }
-
-  /* 💡 アテンションバッジ用のふんわり点滅エフェクト [1.2] */
-  @keyframes pulseEffect {
-    0% { opacity: 1; }
-    50% { opacity: 0.75; }
-    100% { opacity: 1; }
   }
 </style>

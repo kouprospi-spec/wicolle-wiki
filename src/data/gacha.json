@@ -2,7 +2,10 @@
   {
     "id": "gacha-supremos-9th-2026",
     "title": "9th Anniversary SUPREMOSピックアップ11連ガチャ",
-    "period": "2026-10-31 ～ 2026-11-16",
+    "startDate": "2026-10-31",
+    "startTime": "15:00",
+    "endDate": "2026-11-16",
+    "endTime": "14:59",
     "featuredPlayerIds": [
       "olise-national-supremos-2026",
       "yamal-national-supremos-2026",
@@ -17,7 +20,10 @@
   {
     "id": "gacha-prometheus-9th",
     "title": "9th Anniversary 超プロメテウス11連ガチャ",
-    "period": "2026-10-24 ～ 2026-10-31",
+    "startDate": "2026-10-26",
+    "startTime": "15:00",
+    "endDate": "2026-10-31",
+    "endTime": "14:59",
     "featuredPlayerIds": [
       "pele-legend-2026",
       "figo-legend-2026",
@@ -28,7 +34,10 @@
   {
     "id": "gacha-dynamos-2026",
     "title": "ダイナモピックアップ11連ガチャ",
-    "period": "2026-10-24 ～ 2026-10-31",
+    "startDate": "2026-10-16",
+    "startTime": "15:00",
+    "endDate": "2026-10-31",
+    "endTime": "14:59",
     "featuredPlayerIds": [
       "pedri-national-dynamos-2026",
       "marc-cucurella-national-dynamos-2026",
