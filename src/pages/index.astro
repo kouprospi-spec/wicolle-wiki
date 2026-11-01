@@ -4,11 +4,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import players from '../data/players.json';
 
 // ⚽ ポジションバッジ用のカラー判定
-function getPositionCategory(pos) {
+function getPositionCategory(pos: string) {
   if (!pos) return "";
   const p = pos.toUpperCase();
   if (["CF", "ST", "LWG", "RWG", "FW"].includes(p)) return "fw";
-  if (["OMF", "CMF", "DMF", "RSH", "LSH", "MF"].includes(p)) return "mf";
+  if (["OMF", "CMF", "LMF", "RMF", "DMF", "RSH", "LSH", "MF"].includes(p)) return "mf";
   if (["CB", "RSB", "LSB", "DF"].includes(p)) return "df";
   if (["GK"].includes(p)) return "gk";
   return "";
@@ -131,7 +131,8 @@ function getPositionCategory(pos) {
       const allSkills = [...(player.specialSkills || []), ...(player.selectSkills || [])].join(',');
       const mainPositionsStr = (player.positionsMain || []).join(',').toLowerCase();
 
-      const k = player.status && player.status.kira_lv80 ? player.status.kira_lv80 : {};
+      const k = (player.status && player.status.kira_lv80 ? player.status.kira_lv80 : {}) as { [key: string]: number };
+
       const ofe = Number(k.ofe) || 0;
       const tec = Number(k.tec) || 0;
       const sta = Number(k.sta) || 0;
@@ -184,9 +185,9 @@ function getPositionCategory(pos) {
   function initAdvancedSearch() {
     const filterType = document.getElementById('filter-type') as HTMLSelectElement;
     const sortOrder = document.getElementById('sort-order') as HTMLSelectElement;
-    const wrapper = document.getElementById('player-list-wrapper');
-    const noMsg = document.getElementById('no-players-msg');
-    const msgDefault = document.getElementById('cond-default-msg');
+    const wrapper = document.getElementById('player-list-wrapper') as HTMLElement;
+    const noMsg = document.getElementById('no-players-msg') as HTMLElement;
+    const msgDefault = document.getElementById('cond-default-msg') as HTMLElement; // 👈 ここ
     const selectPos = document.getElementById('cond-pos') as HTMLSelectElement;
     const selectMainPos = document.getElementById('cond-main-pos') as HTMLSelectElement;
     const selectType = document.getElementById('cond-type') as HTMLSelectElement;

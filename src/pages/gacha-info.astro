@@ -8,7 +8,7 @@ import playersData from '../data/players.json';
 const nowJST = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
 
 // ポジションカテゴリ判定（色分け用）
-function getPositionCategory(pos) {
+function getPositionCategory(pos: string) {
   if (!pos) return "";
   const p = pos.toUpperCase();
   if (["CF", "ST", "LWG", "RWG", "FW"].includes(p)) return "fw";
@@ -36,11 +36,10 @@ const activeGachaItems = gachaList.filter(item => {
 
   <div id="gacha-list-wrapper" style="display: flex; flex-direction: column; gap: 20px;">
     {activeGachaItems.length > 0 ? (
-      activeGachaItems.map((gacha) => {
+      activeGachaItems.map((gacha: any) => {
         const featuredIds = gacha.featuredPlayerIds || [];
         const matchedPlayers = playersData.filter(player => featuredIds.includes(player.id));
 
-        // 💡 修正：過剰な型チェックを完全に廃止し、シンプルかつ確実にスラッシュ置換を実行
         const displayStart = gacha.startDate ? gacha.startDate.replace(/-/g, '/') : "未定";
         const displayEnd = gacha.endDate ? gacha.endDate.replace(/-/g, '/') : "未定";
 

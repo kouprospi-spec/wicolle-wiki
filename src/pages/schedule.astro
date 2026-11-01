@@ -4,7 +4,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import scheduleList from '../data/schedule.json';
 
 // 📐 安全に日時オブジェクトを正確に生成する関数
-function parseLocalDateTime(dateStr, timeStr) {
+function parseLocalDateTime(dateStr: string, timeStr: string) {
   if (!dateStr || dateStr.trim() === "") return null;
   const parts = dateStr.split('-');
   if (parts.length !== 3) return null;
@@ -52,13 +52,16 @@ const weeks = Array.from({ length: 4 }, (_, weekIdx) => {
     const rawDayItems = scheduleList.filter(item => {
       const itemStart = parseLocalDateTime(item.startDate, item.startTime);
       if (!itemStart) return false;
-      
+  
+      // 💡 itemEnd が必ず Date オブジェクト（null以外）になるよう fallback を徹底
       const itemEnd = item.endDate ? parseLocalDateTime(item.endDate, item.endTime) : new Date(2099, 11, 31, 23, 59, 59);
-      
+      if (!itemEnd) return false; // 👈 ここを追加して null の可能性を完全に排除
+
       const dayStart = currentDay.getTime();
       const dayEnd = currentDay.getTime() + (24 * 60 * 60 * 1000) - 1;
-      
-      return itemStart.getTime() <= dayEnd && itemEnd.getTime() >= dayStart;
+  
+      // 💡 TypeScriptに null でないことを確実にするため、!（非nullアサーション）を付ける
+      return itemStart.getTime() <= dayEnd && itemEnd!.getTime() >= dayStart;
     });
 
     // 💡 3段階優先度ソートアルゴリズムを完全に適用
@@ -80,11 +83,12 @@ const weeks = Array.from({ length: 4 }, (_, weekIdx) => {
       if (scoreA !== scoreB) return scoreB - scoreA;
 
       // 【第2階層】タイプ別優先度（gacha=4, event=3, campaign=2, exchange=1）
-      const typeOrder = { "gacha": 4, "event": 3, "campaign": 2, "exchange": 1 };
-      const typeScoreA = typeOrder[a.type] || 0;
-      const typeScoreB = typeOrder[b.type] || 0;
+      const typeOrder: Record<string, number> = { "gacha": 4, "event": 3, "campaign": 2, "exchange": 1 };
 
-      if (typeScoreA !== typeScoreB) return typeScoreB - typeScoreA;
+const typeScoreA = typeOrder[a.type] || 0;
+const typeScoreB = typeOrder[b.type] || 0;
+
+if (typeScoreA !== typeScoreB) return typeScoreB - typeScoreA;
 
       // 【第3階層】💡同じタイプ内での時間優先ソート（早く終わるもの、早く始まるもの）
       if (scoreA === 3) {
