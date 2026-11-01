@@ -31,14 +31,14 @@ const activeGachaItems = gachaList.filter(item => {
 ---
 
 <BaseLayout pageTitle="ウイコレ攻略wiki | 開催中ガチャ一覧">
-  <h2 style="font-size: 1.3rem; border-left: 5px solid #00bfa5; padding-left: 12px; margin: 0 0 20px 0; color: #111; font-weight: bold;">開催中・予定ガチャ一覧</h2>
-  <p style="font-size: 0.9rem; color: #666; margin-bottom: 25px;">現在ウイコレアプリ内で引くことができるガチャ、および今後開催予定のガチャ詳細と限定排出選手一覧です。</p>
+  <h2 style="font-size: 1.3rem; border-left: 5px solid #00bfa5; padding-left: 12px; margin: 0 0 20px 0; color: #111; font-weight: bold;">開催中のガチャ一覧</h2>
+  <p style="font-size: 0.9rem; color: #666; margin-bottom: 25px;">現在ウイコレアプリ内で引くことができるガチャと限定排出選手一覧です。</p>
 
   <div id="gacha-list-wrapper" style="display: flex; flex-direction: column; gap: 20px;">
     {activeGachaItems.length > 0 ? (
       activeGachaItems.map((gacha: any) => {
         const featuredIds = gacha.featuredPlayerIds || [];
-        const matchedPlayers = playersData.filter(player => featuredIds.includes(player.id));
+        const matchedPlayers = playersData.filter((player: any) => featuredIds.includes(player.id)).sort((a: any, b: any) => featuredIds.indexOf(a.id) - featuredIds.indexOf(b.id));
 
         const displayStart = gacha.startDate ? gacha.startDate.replace(/-/g, '/') : "未定";
         const displayEnd = gacha.endDate ? gacha.endDate.replace(/-/g, '/') : "未定";
