@@ -1,23 +1,31 @@
 [
-    {
+  {
+    "title": "eCLUB ランク戦",
+    "type": "event",
+    "startDate": "2026-11-02",
+    "startTime": "03:00",
+    "endDate": "2026-11/30",
+    "endTime": "02:59",
+    "badgeText": "キャンペーン"
+  },
+  {
     "title": "ネクサスオークション",
     "type": "campaign",
     "startDate": "2026-11-02",
     "startTime": "15:00",
-    "endDate": "",
-    "endTime": "",
+    "endDate": "2026-11/12",
+    "endTime": "02:59",
     "badgeText": "キャンペーン"
   },
-    {
+  {
     "title": "9th Anniversary SUPERトレーニングキャンプ",
     "type": "event",
     "startDate": "2026-11-03",
     "startTime": "15:00",
-    "endDate": "",
-    "endTime": "",
+    "endDate": "2026-11-11",
+    "endTime": "14:59",
     "badgeText": "イベント"
   },
-
   {
     "title": "9th Anniversary SUPREMOSピックアップ11連ガチャ",
     "type": "gacha",
@@ -73,24 +81,6 @@
     "badgeText": "キャンペーン"
   },
   {
-    "title": "9th Anniversary 福引（第1回）",
-    "type": "campaign",
-    "startDate": "2026-10-29",
-    "startTime": "03:00",
-    "endDate": "2026-10-31",
-    "endTime": "02:59",
-    "badgeText": "キャンペーン"
-  },
-  {
-    "title": "9th Anniversary 福引（先行開催）",
-    "type": "campaign",
-    "startDate": "2026-10-23",
-    "startTime": "15:00",
-    "endDate": "2026-10-26",
-    "endTime": "14:59",
-    "badgeText": "キャンペーン"
-  },
-  {
     "title": "9th Anniversary 第1弾 無料11連ガチャ",
     "type": "gacha",
     "startDate": "2026-10-26",
@@ -127,24 +117,6 @@
     "badgeText": "交換所"
   },
   {
-    "title": "ダイナモピックアップ11連ガチャ",
-    "type": "gacha",
-    "startDate": "2026-10-16",
-    "startTime": "15:00",
-    "endDate": "2026-10-31",
-    "endTime": "14:59",
-    "badgeText": "ガチャ"
-  },
-  {
-    "title": "9th Anniversary 超プロメテウス11連ガチャ",
-    "type": "gacha",
-    "startDate": "2026-10-26",
-    "startTime": "16:00",
-    "endDate": "2026-10-31",
-    "endTime": "14:59",
-    "badgeText": "ガチャ"
-  },
-  {
     "title": "ウェルカムキャンペーン",
     "type": "campaign",
     "startDate": "2026-10-26",
@@ -177,7 +149,7 @@
     "startDate": "2026-11-09",
     "startTime": "03:00",
     "endDate": "2026-11-16",
-    "endTime": "",
+    "endTime": "02:59",
     "badgeText": "タイタンズリーグ"
   },
   {
