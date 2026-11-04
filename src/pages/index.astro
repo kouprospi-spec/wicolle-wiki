@@ -4,7 +4,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import players from '../data/players.json';
 
 // ⚽ ポジションバッジ用のカラー判定
-function getPositionCategory(pos: string) {
+function getPositionCategory(pos: string): string {
   if (!pos) return "";
   const p = pos.toUpperCase();
   if (["CF", "ST", "LWG", "RWG", "FW"].includes(p)) return "fw";
@@ -15,77 +15,78 @@ function getPositionCategory(pos: string) {
 }
 ---
 
-<BaseLayout pageTitle="ウイコレ攻略wiki | 選手一覧マルチデータベース">
+<BaseLayout pageTitle="ウイコレ攻略wiki | 選手一覧データベース">
   <h2 style="font-size: 1.3rem; border-left: 5px solid #00bfa5; padding-left: 12px; margin: 0 0 20px 0; color: #111; font-weight: bold;">選手一覧</h2>
   
-  {/* 🔍 マルチ検索 ＆ 18種高機能ソートコントロールパネル */}
-  <div style="display: flex; gap: 15px; margin-bottom: 20px; background-color: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; flex-wrap: wrap; align-items: center;">
+  {/* 🔍 3マルチAND検索 ＆ 18種高機能ソートコントロールパネル */}
+  <div style="margin-bottom: 20px; background-color: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
     
-    {/* 📋 絞り込み項目セレクト */}
-    <div style="display: flex; align-items: center; gap: 8px;">
-      <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">絞り込み:</label>
-      <select id="filter-type" style="padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.9rem; background-color: #fff; cursor: pointer; font-weight: bold;">
-        <option value="all">すべて表示（絞り込みなし）</option>
-        <option value="pos">ポジション</option>
-        <option value="mainPos">適正ポジション</option> {/* 💡ご指定通りポジションのすぐ次に配置 */}
-        <option value="type">タイプ</option>
-        <option value="cardType">シリーズ</option>
-        <option value="country">国・所属</option>
-        <option value="skill">所持スキル</option>
-      </select>
-    </div>
+    {/* 📋 絞り込み条件 3パターン設置エリア */}
+    <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 15px;">
+      {[1, 2, 3].map((num) => (
+        <div class="filter-row" style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center; border-bottom: 1px dashed #e2e8f0; padding-bottom: 10px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 0.8rem; background-color: #475569; color: #fff; padding: 2px 6px; border-radius: 4px; font-weight: bold;">条件 {num}</span>
+            <select class="filter-type" data-index={num} style="padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.9rem; background-color: #fff; cursor: pointer; font-weight: bold;">
+              <option value="all">指定なし（すべて表示）</option>
+              <option value="pos">ポジション</option>
+              <option value="mainPos">適正ポジション</option>
+              <option value="type">タイプ</option>
+              <option value="cardType">シリーズ</option>
+              <option value="country">国・所属</option>
+              <option value="skill">所持スキル</option>
+            </select>
+          </div>
 
-    {/* 🎯 条件入力エリア */}
-    <div id="filter-condition-container" style="display: flex; align-items: center; gap: 8px;">
-      <span id="cond-default-msg" style="font-size: 0.85rem; color: #888;">項目を選択してください</span>
-      
-      {/* 公式ポジション用 */}
-      <select id="cond-pos" style="display: none; padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.9rem; background-color: #fff; font-weight: bold;">
-        <option value="fw">FW</option>
-        <option value="mf">MF</option>
-        <option value="df">DF</option>
-        <option value="gk">GK</option>
-      </select>
+          <div class="filter-condition-container" data-index={num} style="display: flex; align-items: center; gap: 8px;">
+            <span class="cond-default-msg" style="font-size: 0.85rem; color: #888;">項目を選択してください</span>
+            
+            <select class="cond-pos" style="display: none; padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.9rem; background-color: #fff; font-weight: bold;">
+              <option value="fw">FW</option>
+              <option value="mf">MF</option>
+              <option value="df">DF</option>
+              <option value="gk">GK</option>
+            </select>
 
-      {/* 💡新設：適正ポジション選択用のサブセレクト（ウイコレ登録全エリア） */}
-      <select id="cond-main-pos" style="display: none; padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.9rem; background-color: #fff; font-weight: bold;">
-        <option value="cf">CF</option>
-        <option value="st">ST</option>
-        <option value="lwg">LWG</option>
-        <option value="rwg">RWG</option>
-        <option value="omf">OMF</option>
-        <option value="cmf">CMF</option>
-        <option value="lsh">LSH</option>
-        <option value="rsh">RSH</option>
-        <option value="dmf">DMF</option>
-        <option value="cb">CB</option>
-        <option value="lsb">LSB</option>
-        <option value="rsb">RSB</option>
-        <option value="gk">GK</option>
-      </select>
+            <select class="cond-main-pos" style="display: none; padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.9rem; background-color: #fff; font-weight: bold;">
+              <option value="cf">CF</option>
+              <option value="st">ST</option>
+              <option value="lwg">LWG</option>
+              <option value="rwg">RWG</option>
+              <option value="omf">OMF</option>
+              <option value="cmf">CMF</option>
+              <option value="lsh">LSH</option>
+              <option value="rsh">RSH</option>
+              <option value="dmf">DMF</option>
+              <option value="cb">CB</option>
+              <option value="lsb">LSB</option>
+              <option value="rsb">RSB</option>
+              <option value="gk">GK</option>
+            </select>
 
-      {/* 💡 選手タイプセレクト */}
-      <select id="cond-type" style="display: none; padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.9rem; background-color: #fff; font-weight: bold;">
-        <option value="テクニック">テクニック</option>
-        <option value="パワー">パワー</option>
-        <option value="スピード">スピード</option>
-        <option value="スタミナ">スタミナ</option>
-        <option value="バランス">バランス</option>
-      </select>
-      
-      {/* 💡 シリーズセレクト */}
-      <select id="cond-cardtype" style="display: none; padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.9rem; background-color: #fff; font-weight: bold;">
-        <option value="レギュラー">レギュラー</option>
-        <option value="ナショナル">ナショナル</option>
-        <option value="レジェンド">レジェンド</option>
-        <option value="エターナル">エターナル</option>
-      </select>
-      
-      <input id="cond-keyword" type="text" placeholder="キーワードを入力..." style="display: none; padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.9rem; width: 180px;" />
+            <select class="cond-type" style="display: none; padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.9rem; background-color: #fff; font-weight: bold;">
+              <option value="テクニック">テクニック</option>
+              <option value="パワー">パワー</option>
+              <option value="スピード">スピード</option>
+              <option value="スタミナ">スタミナ</option>
+              <option value="バランス">バランス</option>
+            </select>
+            
+            <select class="cond-cardtype" style="display: none; padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.9rem; background-color: #fff; font-weight: bold;">
+              <option value="レギュラー">レギュラー</option>
+              <option value="ナショナル">ナショナル</option>
+              <option value="レジェンド">レジェンド</option>
+              <option value="エターナル">エターナル</option>
+            </select>
+            
+            <input class="cond-keyword" type="text" placeholder="キーワードを入力..." style="display: none; padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.9rem; width: 180px;" />
+          </div>
+        </div>
+      ))}
     </div>
 
     {/* 🔢 並び替えセレクト */}
-    <div style="display: flex; align-items: center; gap: 8px; margin-left: auto;">
+    <div style="display: flex; align-items: center; gap: 8px; justify-content: flex-start; padding-top: 5px;">
       <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">並び替え:</label>
       <select id="sort-order" style="padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.9rem; background-color: #fff; cursor: pointer; font-weight: bold;">
         <option value="grade-desc">グレードが高い順</option>
@@ -174,77 +175,153 @@ function getPositionCategory(pos: string) {
     })}
   </div>
 
+  {/* 🔢 ページネーションコントロール */}
+  <div id="pagination-container" style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 20px; flex-wrap: wrap;"></div>
+
   {/* 📭 絞り込み結果がゼロの時のセーフメッセージ */}
   <div id="no-players-msg" style="display: none; text-align: center; padding: 40px; border: 1px dashed #cbd5e1; border-radius: 8px; color: #64748b; background-color: #f8fafc; font-weight: bold; margin-top: 15px;">
     🔍 条件に一致する選手は見つかりませんでした。
   </div>
 </BaseLayout>
 
-{/* 🧠 18種超高機能リアルタイムソート＆マルチフィルター制御スクリプト */}
 <script>
   function initAdvancedSearch() {
-    const filterType = document.getElementById('filter-type') as HTMLSelectElement;
     const sortOrder = document.getElementById('sort-order') as HTMLSelectElement;
     const wrapper = document.getElementById('player-list-wrapper') as HTMLElement;
     const noMsg = document.getElementById('no-players-msg') as HTMLElement;
-    const msgDefault = document.getElementById('cond-default-msg') as HTMLElement; // 👈 ここ
-    const selectPos = document.getElementById('cond-pos') as HTMLSelectElement;
-    const selectMainPos = document.getElementById('cond-main-pos') as HTMLSelectElement;
-    const selectType = document.getElementById('cond-type') as HTMLSelectElement;
-    const selectCardType = document.getElementById('cond-cardtype') as HTMLSelectElement;
-    const inputKeyword = document.getElementById('cond-keyword') as HTMLInputElement;
+    const pagContainer = document.getElementById('pagination-container') as HTMLElement;
 
-    if (!filterType || !sortOrder || !wrapper || !noMsg || !msgDefault || !selectPos || !selectMainPos || !selectType || !selectCardType || !inputKeyword) return;
+    if (!sortOrder || !wrapper || !noMsg || !pagContainer) return;
 
     const initialItems = Array.from(wrapper.querySelectorAll('.player-list-item')) as HTMLElement[];
+    const filterRows = Array.from(document.querySelectorAll('.filter-row'));
 
-    function handleTypeChange() {
-      const type = filterType.value;
-      msgDefault.style.display = 'none';
-      selectPos.style.display = 'none';
-      selectMainPos.style.display = 'none';
-      selectType.style.display = 'none';
-      selectCardType.style.display = 'none';
-      inputKeyword.style.display = 'none';
+    // 📄 ページネーション状態管理
+    let currentPage = 1;
+    const itemsPerPage = 20;
 
-      if (type === 'all') msgDefault.style.display = 'inline-block';
-      if (type === 'pos') selectPos.style.display = 'inline-block';
-      if (type === 'mainPos') selectMainPos.style.display = 'inline-block';
-      if (type === 'type') selectType.style.display = 'inline-block';
-      if (type === 'cardType') selectCardType.style.display = 'inline-block';
-      if (type === 'skill' || type === 'country') {
-        inputKeyword.style.display = 'inline-block';
-        inputKeyword.placeholder = type === 'skill' ? 'スキル名を入力... (例: パス)' : '国名・所属を入力...';
+    // 各条件行のUI表示切り替えを設定
+    filterRows.forEach(row => {
+      const filterType = row.querySelector('.filter-type') as HTMLSelectElement;
+      const msgDefault = row.querySelector('.cond-default-msg') as HTMLElement;
+      const selectPos = row.querySelector('.cond-pos') as HTMLSelectElement;
+      const selectMainPos = row.querySelector('.cond-main-pos') as HTMLSelectElement;
+      const selectType = row.querySelector('.cond-type') as HTMLSelectElement;
+      const selectCardType = row.querySelector('.cond-cardtype') as HTMLSelectElement;
+      const inputKeyword = row.querySelector('.cond-keyword') as HTMLInputElement;
+
+      if (!filterType) return;
+
+      function handleRowTypeChange() {
+        const type = filterType.value;
+        if (msgDefault) msgDefault.style.display = 'none';
+        if (selectPos) selectPos.style.display = 'none';
+        if (selectMainPos) selectMainPos.style.display = 'none';
+        if (selectType) selectType.style.display = 'none';
+        if (selectCardType) selectCardType.style.display = 'none';
+        if (inputKeyword) inputKeyword.style.display = 'none';
+
+        if (type === 'all' && msgDefault) msgDefault.style.display = 'inline-block';
+        if (type === 'pos' && selectPos) selectPos.style.display = 'inline-block';
+        if (type === 'mainPos' && selectMainPos) selectMainPos.style.display = 'inline-block';
+        if (type === 'type' && selectType) selectType.style.display = 'inline-block';
+        if (type === 'cardType' && selectCardType) selectCardType.style.display = 'inline-block';
+        if ((type === 'skill' || type === 'country') && inputKeyword) {
+          inputKeyword.style.display = 'inline-block';
+          inputKeyword.placeholder = type === 'skill' ? 'スキル名を入力...' : '国名・所属を入力...';
+        }
+        if (inputKeyword) inputKeyword.value = '';
+
+        currentPage = 1;
+        updateList();
       }
-      inputKeyword.value = '';
-      updateList();
+
+      filterType.addEventListener('change', handleRowTypeChange);
+      if (selectPos) selectPos.addEventListener('change', () => { currentPage = 1; updateList(); });
+      if (selectMainPos) selectMainPos.addEventListener('change', () => { currentPage = 1; updateList(); });
+      if (selectType) selectType.addEventListener('change', () => { currentPage = 1; updateList(); });
+      if (selectCardType) selectCardType.addEventListener('change', () => { currentPage = 1; updateList(); });
+      if (inputKeyword) inputKeyword.addEventListener('input', () => { currentPage = 1; updateList(); });
+    });
+
+    // 🔢 ページネーションUIの動的生成
+    function renderPagination(totalVisibleCount: number) {
+      pagContainer.innerHTML = '';
+      const totalPages = Math.ceil(totalVisibleCount / itemsPerPage);
+      if (totalPages <= 1) return;
+
+      // ◀ 前へ
+      const prevBtn = document.createElement('button');
+      prevBtn.className = 'page-btn';
+      prevBtn.innerText = '◀';
+      prevBtn.disabled = currentPage === 1;
+      prevBtn.addEventListener('click', () => {
+        currentPage--;
+        updateList();
+        window.scrollTo({top: 0, behavior: 'smooth'});
+      });
+      pagContainer.appendChild(prevBtn);
+
+      // 各ページ番号
+      for (let i = 1; i <= totalPages; i++) {
+        const pageBtn = document.createElement('button');
+        pageBtn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+        pageBtn.innerText = i.toString();
+        pageBtn.addEventListener('click', () => {
+          currentPage = i;
+          updateList();
+          window.scrollTo({top: 0, behavior: 'smooth'});
+        });
+        pagContainer.appendChild(pageBtn);
+      }
+
+      // ▶ 次へ
+      const nextBtn = document.createElement('button');
+      nextBtn.className = 'page-btn';
+      nextBtn.innerText = '▶';
+      nextBtn.disabled = currentPage === totalPages;
+      nextBtn.addEventListener('click', () => {
+        currentPage++;
+        updateList();
+        window.scrollTo({top: 0, behavior: 'smooth'});
+      });
+      pagContainer.appendChild(nextBtn);
     }
 
     function updateList() {
-      const type = filterType.value;
       const sort = sortOrder.value;
-      let visibleCount = 0;
 
-      initialItems.forEach(item => {
-        let match = false;
-        if (type === 'all') match = true;
-        else if (type === 'pos') match = item.getAttribute('data-pos') === selectPos.value;
-        else if (type === 'mainPos') match = (item.getAttribute('data-main-positions') || "").split(',').includes(selectMainPos.value);
-        else if (type === 'type') match = item.getAttribute('data-type') === selectType.value;
-        else if (type === 'cardType') match = (item.getAttribute('data-cardtype') || "").includes(selectCardType.value);
-        else if (type === 'skill') match = (item.getAttribute('data-skills') || "").toLowerCase().includes(inputKeyword.value.toLowerCase().trim());
-        else if (type === 'country') match = (item.getAttribute('data-country') || "").toLowerCase().includes(inputKeyword.value.toLowerCase().trim());
-
-        if (match) { item.style.display = 'block'; visibleCount++; }
-        else { item.style.display = 'none'; }
+      // 3つの行から現在の検索条件を取得
+      const activeFilters = filterRows.map(row => {
+        const type = (row.querySelector('.filter-type') as HTMLSelectElement).value;
+        return {
+          type,
+          pos: (row.querySelector('.cond-pos') as HTMLSelectElement).value,
+          mainPos: (row.querySelector('.cond-main-pos') as HTMLSelectElement).value,
+          playerType: (row.querySelector('.cond-type') as HTMLSelectElement).value,
+          cardType: (row.querySelector('.cond-cardtype') as HTMLSelectElement).value,
+          keyword: (row.querySelector('.cond-keyword') as HTMLInputElement).value.toLowerCase().trim()
+        };
       });
 
-      noMsg.style.display = visibleCount === 0 ? 'block' : 'none';
-      wrapper.style.display = visibleCount === 0 ? 'none' : 'block';
+      // 1. 条件クリアする選手を抽出
+      const matchedItems = initialItems.filter(item => {
+        return activeFilters.every(filter => {
+          if (filter.type === 'all') return true;
+          if (filter.type === 'pos') return item.getAttribute('data-pos') === filter.pos;
+          if (filter.type === 'mainPos') return (item.getAttribute('data-main-positions') || "").split(',').includes(filter.mainPos);
+          if (filter.type === 'type') return item.getAttribute('data-type') === filter.playerType;
+          if (filter.type === 'cardType') return (item.getAttribute('data-cardtype') || "").includes(filter.cardType);
+          if (filter.type === 'skill') return (item.getAttribute('data-skills') || "").toLowerCase().includes(filter.keyword);
+          if (filter.type === 'country') return (item.getAttribute('data-country') || "").toLowerCase().includes(filter.keyword);
+          return true;
+        });
+      });
 
-      const currentItems = Array.from(wrapper.querySelectorAll('.player-list-item')) as HTMLElement[];
-      
-      currentItems.sort((a, b) => {
+      const totalVisibleCount = matchedItems.length;
+
+      // 2. ソート処理
+      matchedItems.sort((a, b) => {
         const gradeA = parseInt(a.getAttribute('data-grade') || '0', 10);
         const gradeB = parseInt(b.getAttribute('data-grade') || '0', 10);
         const totalA = parseInt(a.getAttribute('data-total') || '0', 10);
@@ -287,18 +364,31 @@ function getPositionCategory(pos: string) {
         }
       });
 
-      currentItems.forEach(item => wrapper.appendChild(item));
+      // 3. 現在の該当ページ分（20名）の範囲を抽出して表示
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+
+      initialItems.forEach(item => {
+        const matchIndex = matchedItems.indexOf(item);
+        if (matchIndex >= startIndex && matchIndex < endIndex) {
+          item.style.display = 'block';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+
+      // 4. DOMツリーの並び替え反映と表示制御
+      matchedItems.forEach(item => wrapper.appendChild(item));
+
+      noMsg.style.display = totalVisibleCount === 0 ? 'block' : 'none';
+      wrapper.style.display = totalVisibleCount === 0 ? 'none' : 'block';
+
+      renderPagination(totalVisibleCount);
     }
 
-    filterType.addEventListener('change', handleTypeChange);
-    selectPos.addEventListener('change', updateList);
-    selectMainPos.addEventListener('change', updateList);
-    selectType.addEventListener('change', updateList);
-    selectCardType.addEventListener('change', updateList);
-    inputKeyword.addEventListener('input', updateList);
     sortOrder.addEventListener('change', updateList);
-
     updateList();
+
     const navHome = document.getElementById('nav-home');
     if (navHome) navHome.classList.add('active');
   }
@@ -328,7 +418,7 @@ function getPositionCategory(pos: string) {
     box-shadow: inset 0 0 100px rgba(0,0,0,0.01);
   }
 
-  /* 💻 PC版レイアウト定義（一直線に美しく配置） */
+  /* 💻 PC版レイアウト定義 */
   .player-row-content {
     display: flex;
     align-items: center;
@@ -370,7 +460,7 @@ function getPositionCategory(pos: string) {
     flex-shrink: 0;
   }
 
-  /* ポジションカラーバッジの共通定義 */
+  /* ポジションカラーバッジ */
   .badge-item {
     color: #ffffff;
     font-size: 0.75rem;
@@ -386,7 +476,7 @@ function getPositionCategory(pos: string) {
   .badge-item.df { background-color: #3498db; }
   .badge-item.gk { background-color: #f1c40f; color: #000000; }
 
-  /* ⚔️ 所持スキル（PC時は右揃えに固定） */
+  /* 所持スキル */
   .player-skill-text {
     font-size: 0.85rem;
     color: #666666;
@@ -398,7 +488,38 @@ function getPositionCategory(pos: string) {
     max-width: 320px;
   }
 
-  /* 📱 スマホ表示用レイアウト定義（画面幅768px以下で自動で2段折りたたみ） */
+  /* 🔢 ページネーションボタンデザイン */
+  .page-btn {
+    background-color: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #475569;
+    padding: 6px 12px;
+    font-size: 0.9rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    min-width: 36px;
+    text-align: center;
+    font-weight: bold;
+  }
+  .page-btn:hover:not(:disabled) {
+    background-color: #f1f5f9;
+    border-color: #94a3b8;
+    color: #0f172a;
+  }
+  .page-btn.active {
+    background-color: #00bfa5;
+    border-color: #00bfa5;
+    color: #ffffff;
+  }
+  .page-btn:disabled {
+    background-color: #f8fafc;
+    border-color: #e2e8f0;
+    color: #cbd5e1;
+    cursor: not-allowed;
+  }
+
+  /* 📱 スマホ表示用レイアウト定義 */
   @media (max-width: 768px) {
     .player-row-content {
       flex-direction: column;
