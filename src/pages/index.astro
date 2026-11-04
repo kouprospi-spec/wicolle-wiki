@@ -21,6 +21,19 @@ function getPositionCategory(pos: string): string {
   {/* 🔍 3マルチAND検索 ＆ 18種高機能ソートコントロールパネル */}
   <div style="margin-bottom: 20px; background-color: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
     
+    {/* 🔍 選手名キーワード検索フォーム */}
+    <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid #e2e8f0; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+      <label for="search-name" style="font-size: 0.9rem; font-weight: bold; color: #334155; display: flex; align-items: center; gap: 4px;">
+        🔍 選手名検索:
+      </label>
+      <input 
+        id="search-name" 
+        type="text" 
+        placeholder="選手名を入力（部分一致）..." 
+        style="padding: 8px 14px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.9rem; width: 100%; max-width: 300px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);"
+      />
+    </div>
+
     {/* 📋 絞り込み条件 3パターン設置エリア */}
     <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 15px;">
       {[1, 2, 3].map((num) => (
@@ -85,31 +98,46 @@ function getPositionCategory(pos: string): string {
       ))}
     </div>
 
-    {/* 🔢 並び替えセレクト */}
-    <div style="display: flex; align-items: center; gap: 8px; justify-content: flex-start; padding-top: 5px;">
-      <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">並び替え:</label>
-      <select id="sort-order" style="padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.9rem; background-color: #fff; cursor: pointer; font-weight: bold;">
-        <option value="grade-desc">グレードが高い順</option>
-        <option value="grade-asc">グレードが低い順</option>
-        <option value="total-desc">総合力が高い順</option>
-        <option value="total-asc">総合力が低い順</option>
-        <option value="ofe-desc">オフェンスが高い順</option>
-        <option value="ofe-asc">オフェンスが低い順</option>
-        <option value="tec-desc">テクニックが高い順</option>
-        <option value="tec-asc">テクニックが低い順</option>
-        <option value="sta-desc">スタミナが高い順</option>
-        <option value="sta-asc">スタミナが低い順</option>
-        <option value="def-desc">ディフェンスが高い順</option>
-        <option value="def-asc">ディフェンスが低い順</option>
-        <option value="pow-desc">パワーが高い順</option>
-        <option value="pow-asc">パワーが低い順</option>
-        <option value="spd-desc">スピードが高い順</option>
-        <option value="spd-asc">スピードが低い順</option>
-        <option value="birth-asc">生年月日が早い順 (年長)</option>
-        <option value="birth-desc">生年月日が遅い順 (若手)</option>
-      </select>
+    {/* 🔢 並び替え＆表示件数セレクト */}
+    <div style="display: flex; align-items: center; gap: 20px; justify-content: flex-start; padding-top: 5px; flex-wrap: wrap;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">並び替え:</label>
+        <select id="sort-order" style="padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.9rem; background-color: #fff; cursor: pointer; font-weight: bold;">
+          <option value="grade-desc">グレードが高い順</option>
+          <option value="grade-asc">グレードが低い順</option>
+          <option value="total-desc">総合力が高い順</option>
+          <option value="total-asc">総合力が低い順</option>
+          <option value="ofe-desc">オフェンスが高い順</option>
+          <option value="ofe-asc">オフェンスが低い順</option>
+          <option value="tec-desc">テクニックが高い順</option>
+          <option value="tec-asc">テクニックが低い順</option>
+          <option value="sta-desc">スタミナが高い順</option>
+          <option value="sta-asc">スタミナが低い順</option>
+          <option value="def-desc">ディフェンスが高い順</option>
+          <option value="def-asc">ディフェンスが低い順</option>
+          <option value="pow-desc">パワーが高い順</option>
+          <option value="pow-asc">パワーが低い順</option>
+          <option value="spd-desc">スピードが高い順</option>
+          <option value="spd-asc">スピードが低い順</option>
+          <option value="birth-asc">生年月日が早い順 (年長)</option>
+          <option value="birth-desc">生年月日が遅い順 (若手)</option>
+        </select>
+      </div>
+
+      {/* 🆕 表示件数切替 */}
+      <div style="display: flex; align-items: center; gap: 8px; margin-left: auto;">
+        <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">表示件数:</label>
+        <select id="items-per-page" style="padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.9rem; background-color: #fff; cursor: pointer; font-weight: bold;">
+          <option value="10">10件</option>
+          <option value="20" selected>20件</option>
+          <option value="50">50件</option>
+        </select>
+      </div>
     </div>
   </div>
+
+  {/* 🆕 🔢 ページネーションコントロール（上部） */}
+  <div id="pagination-container-top" style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 15px; flex-wrap: wrap;"></div>
   
   {/* 📋 選手リストコンテナ */}
   <div id="player-list-wrapper" style="border: 1px solid #e1e4e6; border-radius: 8px; overflow: hidden; background-color: #ffffff;">
@@ -147,6 +175,7 @@ function getPositionCategory(pos: string): string {
         <a 
           href={`/players/${player.id}`} 
           class="player-list-item" 
+          data-name={player.name}
           data-grade={player.grade} 
           data-pos={mainPosCat} 
           data-main-positions={mainPositionsStr}
@@ -175,8 +204,8 @@ function getPositionCategory(pos: string): string {
     })}
   </div>
 
-  {/* 🔢 ページネーションコントロール */}
-  <div id="pagination-container" style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 20px; flex-wrap: wrap;"></div>
+  {/* 🔢 ページネーションコントロール（下部） */}
+  <div id="pagination-container-bottom" style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 20px; flex-wrap: wrap;"></div>
 
   {/* 📭 絞り込み結果がゼロの時のセーフメッセージ */}
   <div id="no-players-msg" style="display: none; text-align: center; padding: 40px; border: 1px dashed #cbd5e1; border-radius: 8px; color: #64748b; background-color: #f8fafc; font-weight: bold; margin-top: 15px;">
@@ -189,16 +218,26 @@ function getPositionCategory(pos: string): string {
     const sortOrder = document.getElementById('sort-order') as HTMLSelectElement;
     const wrapper = document.getElementById('player-list-wrapper') as HTMLElement;
     const noMsg = document.getElementById('no-players-msg') as HTMLElement;
-    const pagContainer = document.getElementById('pagination-container') as HTMLElement;
+    const pagContainerTop = document.getElementById('pagination-container-top') as HTMLElement; // 🆕 上部コンテナ取得
+    const pagContainerBottom = document.getElementById('pagination-container-bottom') as HTMLElement; // 🆕 下部コンテナ取得
+    const searchName = document.getElementById('search-name') as HTMLInputElement;
 
-    if (!sortOrder || !wrapper || !noMsg || !pagContainer) return;
+    if (!sortOrder || !wrapper || !noMsg || !pagContainerTop || !pagContainerBottom || !searchName) return;
 
     const initialItems = Array.from(wrapper.querySelectorAll('.player-list-item')) as HTMLElement[];
     const filterRows = Array.from(document.querySelectorAll('.filter-row'));
 
     // 📄 ページネーション状態管理
     let currentPage = 1;
-    const itemsPerPage = 20;
+    
+    // 表示件数変更時のイベントを設定
+    const itemsPerPageSelect = document.getElementById('items-per-page') as HTMLSelectElement;
+    if (itemsPerPageSelect) {
+      itemsPerPageSelect.addEventListener('change', () => {
+        currentPage = 1;
+        updateList();
+      });
+    }
 
     // 各条件行のUI表示切り替えを設定
     filterRows.forEach(row => {
@@ -244,54 +283,63 @@ function getPositionCategory(pos: string): string {
       if (inputKeyword) inputKeyword.addEventListener('input', () => { currentPage = 1; updateList(); });
     });
 
-    // 🔢 ページネーションUIの動的生成
+    // 選手名入力時のリアルタイムイベントを設定
+    searchName.addEventListener('input', () => {
+      currentPage = 1;
+      updateList();
+    });
+
+    // 🔢 ページネーションUIの動的生成（上下対応版）
     function renderPagination(totalVisibleCount: number) {
-      pagContainer.innerHTML = '';
+      pagContainerTop.innerHTML = '';
+      pagContainerBottom.innerHTML = '';
+      
+      const itemsPerPage = parseInt(itemsPerPageSelect?.value || '20', 10); // 🆕 動的に件数を取得
       const totalPages = Math.ceil(totalVisibleCount / itemsPerPage);
       if (totalPages <= 1) return;
 
-      // ◀ 前へ
-      const prevBtn = document.createElement('button');
-      prevBtn.className = 'page-btn';
-      prevBtn.innerText = '◀';
-      prevBtn.disabled = currentPage === 1;
-      prevBtn.addEventListener('click', () => {
-        currentPage--;
-        updateList();
-        window.scrollTo({top: 0, behavior: 'smooth'});
-      });
-      pagContainer.appendChild(prevBtn);
-
-      // 各ページ番号
-      for (let i = 1; i <= totalPages; i++) {
-        const pageBtn = document.createElement('button');
-        pageBtn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
-        pageBtn.innerText = i.toString();
-        pageBtn.addEventListener('click', () => {
-          currentPage = i;
+      [pagContainerTop, pagContainerBottom].forEach(container => {
+        const prevBtn = document.createElement('button');
+        prevBtn.className = 'page-btn';
+        prevBtn.innerText = '◀';
+        prevBtn.disabled = currentPage === 1;
+        prevBtn.addEventListener('click', () => {
+          currentPage--;
           updateList();
           window.scrollTo({top: 0, behavior: 'smooth'});
         });
-        pagContainer.appendChild(pageBtn);
-      }
+        container.appendChild(prevBtn);
 
-      // ▶ 次へ
-      const nextBtn = document.createElement('button');
-      nextBtn.className = 'page-btn';
-      nextBtn.innerText = '▶';
-      nextBtn.disabled = currentPage === totalPages;
-      nextBtn.addEventListener('click', () => {
-        currentPage++;
-        updateList();
-        window.scrollTo({top: 0, behavior: 'smooth'});
+        for (let i = 1; i <= totalPages; i++) {
+          const pageBtn = document.createElement('button');
+          pageBtn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+          pageBtn.innerText = i.toString();
+          pageBtn.addEventListener('click', () => {
+            currentPage = i;
+            updateList();
+            window.scrollTo({top: 0, behavior: 'smooth'});
+          });
+          container.appendChild(pageBtn);
+        }
+
+        const nextBtn = document.createElement('button');
+        nextBtn.className = 'page-btn';
+        nextBtn.innerText = '▶';
+        nextBtn.disabled = currentPage === totalPages;
+        nextBtn.addEventListener('click', () => {
+          currentPage++;
+          updateList();
+          window.scrollTo({top: 0, behavior: 'smooth'});
+        });
+        container.appendChild(nextBtn);
       });
-      pagContainer.appendChild(nextBtn);
     }
 
     function updateList() {
       const sort = sortOrder.value;
+      const nameQuery = searchName.value.toLowerCase().trim();
+      const itemsPerPage = parseInt(itemsPerPageSelect?.value || '20', 10); // 🆕 動的に件数を取得
 
-      // 3つの行から現在の検索条件を取得
       const activeFilters = filterRows.map(row => {
         const type = (row.querySelector('.filter-type') as HTMLSelectElement).value;
         return {
@@ -304,8 +352,12 @@ function getPositionCategory(pos: string): string {
         };
       });
 
-      // 1. 条件クリアする選手を抽出
       const matchedItems = initialItems.filter(item => {
+        if (nameQuery) {
+          const playerName = (item.getAttribute('data-name') || '').toLowerCase();
+          if (!playerName.includes(nameQuery)) return false;
+        }
+
         return activeFilters.every(filter => {
           if (filter.type === 'all') return true;
           if (filter.type === 'pos') return item.getAttribute('data-pos') === filter.pos;
@@ -320,7 +372,6 @@ function getPositionCategory(pos: string): string {
 
       const totalVisibleCount = matchedItems.length;
 
-      // 2. ソート処理
       matchedItems.sort((a, b) => {
         const gradeA = parseInt(a.getAttribute('data-grade') || '0', 10);
         const gradeB = parseInt(b.getAttribute('data-grade') || '0', 10);
@@ -364,7 +415,6 @@ function getPositionCategory(pos: string): string {
         }
       });
 
-      // 3. 現在の該当ページ分（20名）の範囲を抽出して表示
       const startIndex = (currentPage - 1) * itemsPerPage;
       const endIndex = startIndex + itemsPerPage;
 
@@ -377,7 +427,6 @@ function getPositionCategory(pos: string): string {
         }
       });
 
-      // 4. DOMツリーの並び替え反映と表示制御
       matchedItems.forEach(item => wrapper.appendChild(item));
 
       noMsg.style.display = totalVisibleCount === 0 ? 'block' : 'none';
