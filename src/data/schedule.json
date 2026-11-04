@@ -1,12 +1,30 @@
 [
   {
+    "title": "9周年記念 インテンシブドリル",
+    "type": "campaign",
+    "startDate": "2026-11-09",
+    "startTime": "15:00",
+    "endDate": "",
+    "endTime": "",
+    "badgeText": "キャンペーン"
+  },
+  {
+    "title": "9th Anniversary 第3弾 無料11連ガチャ",
+    "type": "gacha",
+    "startDate": "2026-11-09",
+    "startTime": "15:00",
+    "endDate": "",
+    "endTime": "",
+    "badgeText": "ガチャ"
+  },
+  {
     "title": "eCLUB ランク戦",
     "type": "event",
     "startDate": "2026-11-02",
     "startTime": "03:00",
     "endDate": "2026-11/30",
     "endTime": "02:59",
-    "badgeText": "キャンペーン"
+    "badgeText": "イベント"
   },
   {
     "title": "ネクサスオークション",
