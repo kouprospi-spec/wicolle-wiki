@@ -2323,5 +2323,30 @@
       "kira_lv70": { "ofe": 336, "tec": 1235, "sta": 1159, "def": 1895, "pow": 1279, "spd": 1289 },
       "kira_lv80": { "ofe": 637, "tec": 2348, "sta": 2203, "def": 3602, "pow": 2432, "spd": 2451 }
     }
+  },
+  {
+    "id": "donnarumma-national-2025",
+    "name": "ジャンルイジ ドンナルンマ",
+    "cardType": "ナショナル 2025",
+    "image": "/images/players/donnarumma-national-limited-2025.png",
+    "grade": 118,
+    "position": "GK",
+    "country": "イタリア",
+    "birth": "1999-02-25",
+    "teamSkill": "スタメンディフェンス強化＋",
+    "positionsMain": ["GK"],
+    "positionsSub": [],
+    "type": "パワー",
+    "specialSkills": ["鉄壁の守護神", "空の要塞"],
+    "selectSkills": ["難攻不落", "刹那の判断"],
+    "customSense": "フォートレス",
+    "status": {
+      "normal_lv1": { "ofe": 79, "tec": 255, "sta": 236, "def": 384, "pow": 265, "spd": 226 },
+      "normal_lv70": { "ofe": 344, "tec": 1113, "sta": 1029, "def": 1673, "pow": 1156, "spd": 987 },
+      "normal_lv80": { "ofe": 653, "tec": 2116, "sta": 1957, "def": 3180, "pow": 2197, "spd": 1876 },
+      "kira_lv1": { "ofe": 87, "tec": 280, "sta": 260, "def": 422, "pow": 292, "spd": 249 },
+      "kira_lv70": { "ofe": 378, "tec": 1224, "sta": 1132, "def": 1840, "pow": 1272, "spd": 1086 },
+      "kira_lv80": { "ofe": 718, "tec": 2328, "sta": 2153, "def": 3498, "pow": 2417, "spd": 2064 }
+    }
   }
 ]

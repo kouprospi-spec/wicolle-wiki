@@ -18,6 +18,15 @@
     "badgeText": "ガチャ"
   },
   {
+    "title": "TITANS LEAGUE直前 DFスペシャルチョイス11連ガチャ",
+    "type": "gacha",
+    "startDate": "2026-11-06",
+    "startTime": "15:00",
+    "endDate": "2026-11-12",
+    "endTime": "14:49",
+    "badgeText": "ガチャ"
+  },
+  {
     "title": "eCLUB ランク戦",
     "type": "event",
     "startDate": "2026-11-02",
