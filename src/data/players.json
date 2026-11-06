@@ -1900,31 +1900,6 @@
     }
   },
   {
-    "id": "martinez-national-guardians-2026",
-    "name": "リサンドロ マルティネス",
-    "cardType": "ナショナル 2026",
-    "image": "/images/players/martinez-national-guardians-2026.png",
-    "grade": 121,
-    "position": "DF",
-    "country": "アルゼンチン",
-    "birth": "1998-01-18",
-    "teamSkill": "スタメンディフェンス強化＋",
-    "positionsMain": ["DMF", "CB"],
-    "positionsSub": ["CMF", "LSB"],
-    "type": "テクニック",
-    "specialSkills": ["リアドミネーター", "インビジブルカット"],
-    "selectSkills": ["スカイハンター", "低弾道ロブ"],
-    "customSense": "ディフェンススキル強化A",
-    "status": {
-      "normal_lv1": { "ofe": "", "tec": "", "sta": "", "def": "", "pow": "", "spd": "" },
-      "normal_lv70": { "ofe": "", "tec": "", "sta": "", "def": "", "pow": "", "spd": "" },
-      "normal_lv80": { "ofe": 760, "tec": 2201, "sta": 2196, "def": 3176, "pow": 2059, "spd": 1907 },
-      "kira_lv1": { "ofe": "", "tec": "", "sta": "", "def": "", "pow": "", "spd": "" },
-      "kira_lv70": { "ofe": "", "tec": "", "sta": "", "def": "", "pow": "", "spd": "" },
-      "kira_lv80": { "ofe": "", "tec": "", "sta": "", "def": "", "pow": "", "spd": "" }
-    }
-  },
-  {
     "id": "guehi-national-guardians-2026",
     "name": "マルク グエイ",
     "cardType": "ナショナル 2026",
@@ -1944,6 +1919,31 @@
       "normal_lv1": { "ofe": "", "tec": "", "sta": "", "def": "", "pow": "", "spd": "" },
       "normal_lv70": { "ofe": "", "tec": "", "sta": "", "def": "", "pow": "", "spd": "" },
       "normal_lv80": { "ofe": 755, "tec": 1800, "sta": 2267, "def": 3180, "pow": 2019, "spd": 2274 },
+      "kira_lv1": { "ofe": "", "tec": "", "sta": "", "def": "", "pow": "", "spd": "" },
+      "kira_lv70": { "ofe": "", "tec": "", "sta": "", "def": "", "pow": "", "spd": "" },
+      "kira_lv80": { "ofe": "", "tec": "", "sta": "", "def": "", "pow": "", "spd": "" }
+    }
+  },
+  {
+    "id": "martinez-national-guardians-2026",
+    "name": "リサンドロ マルティネス",
+    "cardType": "ナショナル 2026",
+    "image": "/images/players/martinez-national-guardians-2026.png",
+    "grade": 121,
+    "position": "DF",
+    "country": "アルゼンチン",
+    "birth": "1998-01-18",
+    "teamSkill": "スタメンディフェンス強化＋",
+    "positionsMain": ["DMF", "CB"],
+    "positionsSub": ["CMF", "LSB"],
+    "type": "テクニック",
+    "specialSkills": ["リアドミネーター", "インビジブルカット"],
+    "selectSkills": ["スカイハンター", "低弾道ロブ"],
+    "customSense": "ディフェンススキル強化A",
+    "status": {
+      "normal_lv1": { "ofe": "", "tec": "", "sta": "", "def": "", "pow": "", "spd": "" },
+      "normal_lv70": { "ofe": "", "tec": "", "sta": "", "def": "", "pow": "", "spd": "" },
+      "normal_lv80": { "ofe": 760, "tec": 2201, "sta": 2196, "def": 3176, "pow": 2059, "spd": 1907 },
       "kira_lv1": { "ofe": "", "tec": "", "sta": "", "def": "", "pow": "", "spd": "" },
       "kira_lv70": { "ofe": "", "tec": "", "sta": "", "def": "", "pow": "", "spd": "" },
       "kira_lv80": { "ofe": "", "tec": "", "sta": "", "def": "", "pow": "", "spd": "" }

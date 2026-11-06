@@ -41,7 +41,7 @@ const isSchedule = pathname.startsWith("/schedule");
             <ul>
               {/* 💡 URLパスに応じて class="active" を三項演算子で完全自動制御 */}
               <li><a href="/" class={isHome ? "active" : ""}>🏠 選手一覧</a></li>
-              <li><a href="/gacha-info" class={isGacha ? "active" : ""}>🎯 開催中ガチャ</a></li>
+              <li><a href="/gacha-info" class={isGacha ? "active" : ""}>🎯 ガチャ</a></li>
               <li><a href="/schedule" class={isSchedule ? "active" : ""}>📅 スケジュール</a></li>
             </ul>
           </nav>

@@ -1,5 +1,5 @@
 ---
-// src/pages/gacha-info.astro (期間表示バグ・完全解決確定版・前半部)
+// src/pages/gacha-info.astro
 import BaseLayout from '../layouts/BaseLayout.astro';
 import gachaList from '../data/gacha.json';
 import playersData from '../data/players.json';
@@ -18,23 +18,48 @@ function getPositionCategory(pos: string) {
   return "";
 }
 
-// 🎯 ガチャデータリストから終了済みのものを安全に除外
-const activeGachaItems = gachaList.filter(item => {
-  if (!item.endDate || item.endDate.trim() === "") return true; // 終了日がない常設データは通過
-  
+// 🟢 終了日時のタイムスタンプを計算する共通補助関数
+function getGachaEndTime(item: any): number | null {
+  if (!item.endDate || item.endDate.trim() === "") return null; // 常設データ
   const tParts = item.endTime ? item.endTime.split(':') : ["23", "59"];
   const eParts = item.endDate.split('-');
-  const endDay = new Date(Number(eParts[0]), Number(eParts[1]) - 1, Number(eParts[2]), Number(tParts[0]), Number(tParts[1]), 59);
-  
-  return endDay.getTime() >= nowJST.getTime();
+  return new Date(Number(eParts[0]), Number(eParts[1]) - 1, Number(eParts[2]), Number(tParts[0]), Number(tParts[1]), 59).getTime();
+}
+
+// 🎯 ① 開催中のガチャデータ
+const activeGachaItems = gachaList.filter(item => {
+  const endTime = getGachaEndTime(item);
+  if (endTime === null) return true; // 常設データは通過
+  return endTime >= nowJST.getTime();
 });
+
+// 🎯 ② 過去に開催された（終了済み）ガチャデータ（終了日が新しい順にソート）
+const pastGachaItems = gachaList
+  .filter(item => {
+    const endTime = getGachaEndTime(item);
+    if (endTime === null) return false; // 常設データは過去に含まない
+    return endTime < nowJST.getTime();
+  })
+  .sort((a, b) => {
+    const timeA = getGachaEndTime(a) || 0;
+    const timeB = getGachaEndTime(b) || 0;
+    return timeB - timeA; // タイムスタンプが大きい＝新しい順
+  });
 ---
 
-<BaseLayout pageTitle="ウイコレ攻略wiki | 開催中ガチャ一覧">
-  <h2 style="font-size: 1.3rem; border-left: 5px solid #00bfa5; padding-left: 12px; margin: 0 0 20px 0; color: #111; font-weight: bold;">開催中のガチャ一覧</h2>
-  <p style="font-size: 0.9rem; color: #666; margin-bottom: 25px;">現在ウイコレアプリ内で引くことができるガチャと限定排出選手一覧です。</p>
+<BaseLayout pageTitle="ウイコレ攻略wiki | ガチャ一覧">
+  <h2 style="font-size: 1.3rem; border-left: 5px solid #00bfa5; padding-left: 12px; margin: 0 0 20px 0; color: #111; font-weight: bold;">ガチャ一覧</h2>
+  <p style="font-size: 0.9rem; color: #666; margin-bottom: 25px;">ウイコレアプリ内で現在引くことができるガチャ、および過去に開催されたガチャの一覧です。</p>
 
-  <div id="gacha-list-wrapper" style="display: flex; flex-direction: column; gap: 20px;">
+  {/* =========================================================================
+      🔥 開催中のガチャ一覧セクション
+     ========================================================================= */}
+  <h3 style="font-size: 1.1rem; font-weight: bold; color: #1e293b; margin: 0 0 15px 0; display: flex; align-items: center; gap: 8px;">
+    <span style="display:inline-block; width:8px; height:18px; background-color:#ea2027; border-radius:2px;"></span>
+    開催中のガチャ
+  </h3>
+
+  <div id="gacha-list-wrapper" style="display: flex; flex-direction: column; gap: 20px; margin-bottom: 40px;">
     {activeGachaItems.length > 0 ? (
       activeGachaItems.map((gacha: any) => {
         const featuredIds = gacha.featuredPlayerIds || [];
@@ -46,7 +71,7 @@ const activeGachaItems = gachaList.filter(item => {
         return (
           <div class="gacha-card-row" style="border: 1px solid #e1e4e6; border-radius: 8px; background-color: #ffffff; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); display: flex; flex-direction: column; gap: 15px;">
             
-            {/* 上段：ガチャの基本ヘッダー情報 */}
+            {/* 上段：基本ヘッダー */}
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; border-bottom: 1px solid #f1f5f9; padding-bottom: 12px;">
               <div style="display: flex; flex-direction: column; gap: 6px;">
                 <div style="display: flex; align-items: center; gap: 8px;">
@@ -60,7 +85,7 @@ const activeGachaItems = gachaList.filter(item => {
                 </div>
               </div>
 
-              {/* 右側：リアルタイムカウントダウンバッジ（常設時は自動非表示） */}
+              {/* カウントダウンバッジ */}
               <div style="text-align: right; min-width: 130px;">
                 <span 
                   class="gacha-live-timer" 
@@ -72,7 +97,7 @@ const activeGachaItems = gachaList.filter(item => {
               </div>
             </div>
 
-            {/* 🌟 下段：限定・注目排出選手バッジ一覧 */}
+            {/* 下段：限定・注目選手 */}
             <div style="display: flex; flex-direction: column; gap: 8px;">
               <h4 style="font-size: 0.85rem; font-weight: bold; color: #475569; margin: 0;">🌟 このガチャの限定排出選手:</h4>
               <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
@@ -103,8 +128,81 @@ const activeGachaItems = gachaList.filter(item => {
         );
       })
     ) : (
-      <div style="text-align: center; padding: 40px; border: 1px dashed #cbd5e1; border-radius: 8px; color: #64748b; background-color: #f8fafc; font-weight: bold;">
-        🎯 現在開催予定のガチャはありません。
+      <div style="text-align: center; padding: 30px; border: 1px dashed #cbd5e1; border-radius: 8px; color: #64748b; background-color: #f8fafc; font-weight: bold;">
+        🎯 現在開催中のガチャはありません。
+      </div>
+    )}
+  </div>
+
+  {/* =========================================================================
+      💤 過去のガチャ一覧セクション
+     ========================================================================= */}
+  <h3 style="font-size: 1.1rem; font-weight: bold; color: #1e293b; margin: 0 0 15px 0; display: flex; align-items: center; gap: 8px;">
+    <span style="display:inline-block; width:8px; height:18px; background-color:#64748b; border-radius:2px;"></span>
+    過去に開催されたガチャ
+  </h3>
+
+  <div id="past-gacha-list-wrapper" style="display: flex; flex-direction: column; gap: 20px;">
+    {pastGachaItems.length > 0 ? (
+      pastGachaItems.map((gacha: any) => {
+        const featuredIds = gacha.featuredPlayerIds || [];
+        const matchedPlayers = playersData.filter((player: any) => featuredIds.includes(player.id)).sort((a: any, b: any) => featuredIds.indexOf(a.id) - featuredIds.indexOf(b.id));
+
+        const displayStart = gacha.startDate ? gacha.startDate.replace(/-/g, '/') : "未定";
+        const displayEnd = gacha.endDate ? gacha.endDate.replace(/-/g, '/') : "未定";
+
+        return (
+          <div class="gacha-card-row past-gacha-card" style="border: 1px solid #e2e8f0; border-radius: 8px; background-color: #f8fafc; padding: 20px; display: flex; flex-direction: column; gap: 15px; opacity: 0.85;">
+            
+            {/* 上段：基本ヘッダー */}
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px;">
+              <div style="display: flex; flex-direction: column; gap: 6px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="background-color: #64748b; color: #ffffff; font-size: 0.75rem; font-weight: bold; padding: 3px 8px; border-radius: 4px;">
+                    {gacha.badgeText || "終了"}
+                  </span>
+                  <h3 style="font-size: 1.1rem; font-weight: bold; margin: 0; color: #475569;">{gacha.title}</h3>
+                </div>
+                <div style="font-size: 0.85rem; color: #64748b; font-weight: 500;">
+                  期間: {displayStart} {gacha.startTime || "00:00"} 〜 {displayEnd} {gacha.endTime || "23:59"}
+                </div>
+              </div>
+            </div>
+
+            {/* 下段：限定・注目選手 */}
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <h4 style="font-size: 0.85rem; font-weight: bold; color: #64748b; margin: 0;">🌟 排出されていた注目選手:</h4>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                {matchedPlayers.length > 0 ? (
+                  matchedPlayers.map((p) => {
+                    const cat = getPositionCategory(p.position);
+                    let bColor = "#94a3b8"; // 過去データはバッジのトーンを落ち着かせる
+                    if (cat === "fw") bColor = "#fca5a5";
+                    if (cat === "mf") bColor = "#86efac";
+                    if (cat === "df") bColor = "#93c5fd";
+                    if (cat === "gk") bColor = "#fde047";
+                    return (
+                      <a href={`/players/${p.id}`} style="text-decoration: none; display: inline-block;">
+                        <span class="player-tag-btn" style={`border: 1px solid ${bColor}; background-color: #ffffff; color: #475569; font-size: 0.8rem; font-weight: bold; padding: 4px 10px; border-radius: 6px; display: flex; align-items: center; gap: 6px; transition: all 0.15s;`}>
+                          <span style={`background-color: ${bColor}; color: #000; font-size: 0.65rem; padding: 1px 4px; border-radius: 3px; min-width: 18px; text-align: center; font-weight: bold;`}>{p.position}</span>
+                          <span>{p.name}</span>
+                          <span style="font-size: 0.7rem; color: #94a3b8;">(G{p.grade})</span>
+                        </span>
+                      </a>
+                    );
+                  })
+                ) : (
+                  <span style="font-size: 0.85rem; color: #94a3b8; font-style: italic;">限定選手データが登録されていません。</span>
+                )}
+              </div>
+            </div>
+
+          </div>
+        );
+      })
+    ) : (
+      <div style="text-align: center; padding: 30px; border: 1px dashed #cbd5e1; border-radius: 8px; color: #64748b; background-color: #f8fafc; font-weight: bold;">
+        過去のガチャデータ履歴はありません。
       </div>
     )}
   </div>
@@ -117,7 +215,6 @@ const activeGachaItems = gachaList.filter(item => {
     if (timers.length === 0) return;
 
     function updateGachaTimers() {
-      // 日本時間（JST）の現在時刻を正確にミリ秒で取得
       const nowJST = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
       const nowTime = nowJST.getTime();
 
@@ -131,34 +228,29 @@ const activeGachaItems = gachaList.filter(item => {
         const startTime = new Date(startStr.replace(/-/g, '/')).getTime();
         const endTime = endStr ? new Date(endStr.replace(/-/g, '/')).getTime() : null;
 
-        // 🔘 常設・終了日未定の場合はカウントダウンバッジ自体を非表示にする
         if (!endTime) {
           el.style.display = 'none';
           return;
         }
 
         if (nowTime < startTime) {
-          // 開催前
           const diff = startTime - nowTime;
           el.innerText = `開始まで ${formatGachaDiff(diff)}`;
-          el.style.backgroundColor = '#3b82f6'; // 開始前：青
+          el.style.backgroundColor = '#3b82f6';
           el.style.display = 'inline-block';
         } else if (nowTime > endTime) {
-          // 終了済み
           el.innerText = '終了';
-          el.style.backgroundColor = '#64748b'; // 終了：グレー
+          el.style.backgroundColor = '#64748b';
           el.style.display = 'inline-block';
         } else {
-          // 開催中
           const diff = endTime - nowTime;
           el.innerText = `あと ${formatGachaDiff(diff)}`;
-          el.style.backgroundColor = '#ea2027'; // 開催中：赤
+          el.style.backgroundColor = '#ea2027';
           el.style.display = 'inline-block';
         }
       });
     }
 
-    // ミリ秒を「〇日 〇時間〇分〇秒」に変換する補助関数
     function formatGachaDiff(ms: number): string {
       const totalSecs = Math.floor(ms / 1000);
       const days = Math.floor(totalSecs / (24 * 60 * 60));
@@ -169,36 +261,38 @@ const activeGachaItems = gachaList.filter(item => {
       if (days > 0) {
         return `${days}日 ${hours}時間`;
       } else if (hours > 0) {
-        return `${hours}時間 ${mins}分 ${secs}秒`; // ガチャ終了直前のデッドライン用に秒まで表示
+        return `${hours}時間 ${mins}分 ${secs}秒`;
       } else {
         return `${mins}分 ${secs}秒`;
       }
     }
 
-    // タイマーの即時実行と1秒ごとのループ始動
     updateGachaTimers();
     const gachaTimerId = setInterval(updateGachaTimers, 1000);
 
-    // ページ遷移時の重複タイマー防止クリーンアップ
     document.addEventListener('astro:before-swap', () => clearInterval(gachaTimerId), { once: true });
   }
 
-  // 起動処理
   initGachaLiveEngine();
   document.addEventListener('astro:after-swap', initGachaLiveEngine);
 </script>
 
 <style is:global>
-  /* 左メニューの「開催中ガチャ」アクティブ化 */
+  /* 左メニューの「ガチャ」アクティブ化 */
   #nav-gacha { font-weight: bold; }
 
   /* ガチャカード全体の基本装飾 */
   .gacha-card-row {
-    transition: border-color 0.15s, box-shadow 0.15s;
+    transition: border-color 0.15s, box-shadow 0.15s, opacity 0.15s;
   }
   .gacha-card-row:hover {
     border-color: #cbd5e1 !important;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04) !important;
+  }
+  
+  /* 過去ガチャカードのホバー時微調整 */
+  .past-gacha-card:hover {
+    opacity: 1 !important;
   }
 
   /* 🌟 排出注目選手バッジのマウスホバー装飾 */

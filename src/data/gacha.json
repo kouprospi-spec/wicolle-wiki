@@ -1,6 +1,18 @@
 [
   {
-    "id": "gacha-supremos-9th-2026",
+    "id": "gacha-titans-df-choice-2026",
+    "title": "TITANS LEAGUE直前 DFスペシャルチョイス11連ガチャ",
+    "startDate": "2026-11-07",
+    "startTime": "15:00",
+    "endDate": "2026-11-12",
+    "endTime": "14:59",
+    "featuredPlayerIds": [
+      "nuno-mendes-national-supremos-2026",
+      "lisandro-martinez-national-supremos-2026"
+    ]
+  },
+  {
+    "id": "gacha-supremos-9th-2nd-2026",
     "title": "9th Anniversary SUPREMOSピックアップ11連ガチャ",
     "startDate": "2026-10-31",
     "startTime": "15:00",
@@ -32,7 +44,7 @@
     ]
   },
   {
-    "id": "gacha-dynamos-2026",
+    "id": "gacha-dynamos-2nd-2026",
     "title": "ダイナモピックアップ11連ガチャ",
     "startDate": "2026-10-16",
     "startTime": "15:00",
@@ -46,6 +58,23 @@
       "julian-ryerson-national-dynamos-2026",
       "enzo-fernandez-national-dynamos-2026",
       "elliot-anderson-national-dynamos-2026"
+    ]
+  },
+  {
+    "id": "gacha-guardians-2nd-2026",
+    "title": "ガーディアンピックアップ11連ガチャ",
+    "startDate": "2026-09-30",
+    "startTime": "15:00",
+    "endDate": "2026-10-16",
+    "endTime": "14:59",
+    "featuredPlayerIds": [
+      "marquinhos-national-guardians-2026",
+      "upamecano-national-guardians-2026",
+      "unai-simon-national-guardians-2026",
+      "cubarsi-national-guardians-2026",
+      "suzuki-national-guardians-2026",
+      "guehi-national-guardians-2026",
+      "martinez-national-guardians-2026"
     ]
   }
 ]
