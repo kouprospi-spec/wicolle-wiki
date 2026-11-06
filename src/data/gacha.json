@@ -30,7 +30,7 @@
     ]
   },
   {
-    "id": "gacha-prometheus-9th",
+    "id": "gacha-prometheus-oct-2026",
     "title": "9th Anniversary 超プロメテウス11連ガチャ",
     "startDate": "2026-10-26",
     "startTime": "15:00",
@@ -75,6 +75,35 @@
       "suzuki-national-guardians-2026",
       "guehi-national-guardians-2026",
       "martinez-national-guardians-2026"
+    ]
+  },
+  {
+    "id": "gacha-prometheus-sep-2026",
+    "title": "9th Anniversary 超プロメテウス11連ガチャ",
+    "startDate": "2026-09-24",
+    "startTime": "15:00",
+    "endDate": "2026-09-30",
+    "endTime": "14:59",
+    "featuredPlayerIds": [
+      "del-piero-legend-2026",
+      "cannavaro-legend-2026"
+    ]
+  },
+  {
+    "id": "gacha-striker-2nd-2026",
+    "title": "ストライカーピックアップ11連ガチャ",
+    "startDate": "2026-09-14",
+    "startTime": "15:00",
+    "endDate": "2026-09-30",
+    "endTime": "14:59",
+    "featuredPlayerIds": [
+      "kane-national-striker-2026",
+      "dembele-national-striker-2026",
+      "oyarzabal-national-striker-2026",
+      "torres-national-striker-2026",
+      "lukaku-national-striker-2026",
+      "doue-national-striker-2026",
+      "alvarez-national-striker-2026"
     ]
   }
 ]
