@@ -124,6 +124,18 @@ function getPositionCategory(pos: string): string {
         </select>
       </div>
 
+      {/* 🆕 🔐 所持済みフラグによる絞り込みチェックボックス */}
+      <div style="display: flex; align-items: center; gap: 6px;">
+        <input 
+          type="checkbox" 
+          id="filter-owned" 
+          style="width: 16px; height: 16px; cursor: pointer; margin: 0;"
+        />
+        <label for="filter-owned" style="font-size: 0.85rem; font-weight: bold; color: #475569; cursor: pointer; user-select: none;">
+          📦 所持済みのみ表示
+        </label>
+      </div>
+
       {/* 🆕 表示件数切替 */}
       <div style="display: flex; align-items: center; gap: 8px; margin-left: auto;">
         <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">表示件数:</label>
@@ -139,7 +151,7 @@ function getPositionCategory(pos: string): string {
   {/* 🆕 🔢 ページネーションコントロール（上部） */}
   <div id="pagination-container-top" style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 15px; flex-wrap: wrap;"></div>
   
-  {/* 📋 選手リストコンテナ */}
+    {/* 📋 選手リストコンテナ */}
   <div id="player-list-wrapper" style="border: 1px solid #e1e4e6; border-radius: 8px; overflow: hidden; background-color: #ffffff;">
     {players.map((player) => {
       let rowStyle = "display: flex; align-items: center; padding: 14px 20px; flex-wrap: wrap; gap: 15px; transition: opacity 0.2s; border-bottom: 1px solid #e1e4e6;";
@@ -175,6 +187,7 @@ function getPositionCategory(pos: string): string {
         <a 
           href={`/players/${player.id}`} 
           class="player-list-item" 
+          data-id={player.id}
           data-name={player.name}
           data-grade={player.grade} 
           data-pos={mainPosCat} 
@@ -189,6 +202,15 @@ function getPositionCategory(pos: string): string {
           style="text-decoration: none; color: inherit; display: block;"
         >
           <div class="player-row-content" style={rowStyle}>
+            {/* 🆕 🔐 各選手ごとの所持チェックボックス */}
+            <div class="player-owned-checkbox-container" style="display: flex; align-items: center; justify-content: center;">
+              <input 
+                type="checkbox" 
+                class="player-owned-cb" 
+                style="width: 18px; height: 18px; cursor: pointer; margin: 0;"
+              />
+            </div>
+            
             <span class="player-grade-badge">{player.grade}</span>
             <div class="player-pos-container">
               <span class={`badge-item ${mainPosCat}`}>{player.position}</span>
@@ -218,18 +240,67 @@ function getPositionCategory(pos: string): string {
     const sortOrder = document.getElementById('sort-order') as HTMLSelectElement;
     const wrapper = document.getElementById('player-list-wrapper') as HTMLElement;
     const noMsg = document.getElementById('no-players-msg') as HTMLElement;
-    const pagContainerTop = document.getElementById('pagination-container-top') as HTMLElement; // 🆕 上部コンテナ取得
-    const pagContainerBottom = document.getElementById('pagination-container-bottom') as HTMLElement; // 🆕 下部コンテナ取得
+    const pagContainerTop = document.getElementById('pagination-container-top') as HTMLElement;
+    const pagContainerBottom = document.getElementById('pagination-container-bottom') as HTMLElement;
     const searchName = document.getElementById('search-name') as HTMLInputElement;
+    const filterOwned = document.getElementById('filter-owned') as HTMLInputElement; // 🆕 所持フィルター取得
 
-    if (!sortOrder || !wrapper || !noMsg || !pagContainerTop || !pagContainerBottom || !searchName) return;
+    if (!sortOrder || !wrapper || !noMsg || !pagContainerTop || !pagContainerBottom || !searchName || !filterOwned) return;
 
     const initialItems = Array.from(wrapper.querySelectorAll('.player-list-item')) as HTMLElement[];
     const filterRows = Array.from(document.querySelectorAll('.filter-row'));
 
     // 📄 ページネーション状態管理
     let currentPage = 1;
-    
+
+    // 🆕 LocalStorageから初期の所持リストを読み込み、各行のチェック状態を同期
+    function syncOwnedCheckboxes() {
+      const stored = localStorage.getItem('wcc_owned_players');
+      const ownedIds = stored ? JSON.parse(stored) : [];
+      initialItems.forEach(item => {
+        const pId = item.getAttribute('data-id');
+        const cb = item.querySelector('.player-owned-cb') as HTMLInputElement;
+        if (cb && pId) {
+          cb.checked = ownedIds.includes(pId);
+        }
+      });
+    }
+
+    // 🆕 各選手のチェックボックスへのイベント設定（Aタグの遷移を防止し、状態を保存）
+    initialItems.forEach(item => {
+      const cb = item.querySelector('.player-owned-cb') as HTMLInputElement;
+      if (!cb) return;
+
+      // リンク遷移（バブリング）を止める
+      cb.addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+
+      // チェック変更時にLocalStorageへ保存してリストを再更新
+      cb.addEventListener('change', () => {
+        const pId = item.getAttribute('data-id');
+        if (!pId) return;
+
+        const stored = localStorage.getItem('wcc_owned_players');
+        let ownedIds = stored ? JSON.parse(stored) : [];
+
+        if (cb.checked) {
+          if (!ownedIds.includes(pId)) ownedIds.push(pId);
+        } else {
+          ownedIds = ownedIds.filter((id: string) => id !== pId);
+        }
+        localStorage.setItem('wcc_owned_players', JSON.stringify(ownedIds));
+
+        // 「所持済みのみ表示」がONの場合は、リスト変動を反映させるため再描画
+        if (filterOwned.checked) {
+          updateList();
+        }
+      });
+    });
+
+    // 初期化時にチェックボックスの状態を復元
+    syncOwnedCheckboxes();
+
     // 表示件数変更時のイベントを設定
     const itemsPerPageSelect = document.getElementById('items-per-page') as HTMLSelectElement;
     if (itemsPerPageSelect) {
@@ -238,6 +309,12 @@ function getPositionCategory(pos: string): string {
         updateList();
       });
     }
+
+    // 🆕 所持済みのみ表示フィルターのイベント設定
+    filterOwned.addEventListener('change', () => {
+      currentPage = 1;
+      updateList();
+    });
 
     // 各条件行のUI表示切り替えを設定
     filterRows.forEach(row => {
@@ -294,7 +371,7 @@ function getPositionCategory(pos: string): string {
       pagContainerTop.innerHTML = '';
       pagContainerBottom.innerHTML = '';
       
-      const itemsPerPage = parseInt(itemsPerPageSelect?.value || '20', 10); // 🆕 動的に件数を取得
+      const itemsPerPage = parseInt(itemsPerPageSelect?.value || '20', 10);
       const totalPages = Math.ceil(totalVisibleCount / itemsPerPage);
       if (totalPages <= 1) return;
 
@@ -335,10 +412,15 @@ function getPositionCategory(pos: string): string {
       });
     }
 
-    function updateList() {
+        function updateList() {
       const sort = sortOrder.value;
       const nameQuery = searchName.value.toLowerCase().trim();
-      const itemsPerPage = parseInt(itemsPerPageSelect?.value || '20', 10); // 🆕 動的に件数を取得
+      const itemsPerPage = parseInt(itemsPerPageSelect?.value || '20', 10);
+      
+      // 🆕 フィルタ条件の取得
+      const showOwnedOnly = filterOwned.checked;
+      const stored = localStorage.getItem('wcc_owned_players');
+      const ownedIds = stored ? JSON.parse(stored) : [];
 
       const activeFilters = filterRows.map(row => {
         const type = (row.querySelector('.filter-type') as HTMLSelectElement).value;
@@ -353,6 +435,13 @@ function getPositionCategory(pos: string): string {
       });
 
       const matchedItems = initialItems.filter(item => {
+        const playerId = item.getAttribute('data-id') || '';
+
+        // 🆕 所持フラグによるフィルタリング判定
+        if (showOwnedOnly && !ownedIds.includes(playerId)) {
+          return false;
+        }
+
         if (nameQuery) {
           const playerName = (item.getAttribute('data-name') || '').toLowerCase();
           if (!playerName.includes(nameQuery)) return false;
@@ -476,6 +565,14 @@ function getPositionCategory(pos: string): string {
     border-bottom: 1px solid #e1e4e6;
   }
 
+  /* 🆕 🔐 各選手ごとの所持チェックボックスの配置コンテナ */
+  .player-owned-checkbox-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
   .player-grade-badge {
     background-color: #f39c12;
     color: #ffffff;
@@ -575,6 +672,12 @@ function getPositionCategory(pos: string): string {
       align-items: flex-start;
       padding: 12px 15px;
       gap: 6px;
+    }
+
+    /* 🆕 スマホの縦並び時にチェックボックスとバッジ類を横並びに維持する調整 */
+    .player-owned-checkbox-container {
+      margin-bottom: 2px;
+      display: inline-flex;
     }
 
     .player-name-text,
