@@ -14,9 +14,13 @@ function parseLocalDateTime(dateStr: string, timeStr: string) {
 const nowJST = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
 const today = new Date(nowJST.getFullYear(), nowJST.getMonth(), nowJST.getDate(), 0, 0, 0, 0);
 
-const dayOfWeek = today.getDay();
+// 日本時間(JST)基準で今日の曜日を取得
+const dayOfWeek = today.getDay(); 
+
 const thisSunday = new Date(today);
+// 当日(today)から曜日分の数値を引くことで、その週の日曜日の日付を正確に取得します
 thisSunday.setDate(today.getDate() - dayOfWeek);
+thisSunday.setHours(0, 0, 0, 0); // 時間のズレを防ぐため0時リセット
 
 const weeks = Array.from({ length: 4 }, (_, weekIdx) => {
   const weekStart = new Date(thisSunday);

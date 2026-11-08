@@ -162,15 +162,6 @@
     "badgeText": "イベント"
   },
   {
-    "title": "CHAMPIONSHIP",
-    "type": "event",
-    "startDate": "2026-10-26",
-    "startTime": "12:00",
-    "endDate": "2026-11-01",
-    "endTime": "20:59",
-    "badgeText": "イベント"
-  },
-  {
     "title": "タイタンズリーグ",
     "type": "event",
     "startDate": "2026-11-09",
