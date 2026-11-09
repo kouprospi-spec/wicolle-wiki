@@ -3,18 +3,27 @@
     "title": "9周年記念 インテンシブドリル",
     "type": "campaign",
     "startDate": "2026-11-09",
-    "startTime": "15:00",
-    "endDate": "",
-    "endTime": "",
+    "startTime": "16:00",
+    "endDate": "2027-01-10",
+    "endTime": "02:59",
     "badgeText": "キャンペーン"
   },
   {
     "title": "9th Anniversary 第3弾 無料11連ガチャ",
     "type": "gacha",
     "startDate": "2026-11-09",
-    "startTime": "15:00",
-    "endDate": "",
-    "endTime": "",
+    "startTime": "16:00",
+    "endDate": "2026-11-26",
+    "endTime": "15:00",
+    "badgeText": "ガチャ"
+  },
+  {
+    "title": "豪華おまけ付き11連ガチャ",
+    "type": "gacha",
+    "startDate": "2026-11-09",
+    "startTime": "16:00",
+    "endDate": "2026-11-16",
+    "endTime": "14:59",
     "badgeText": "ガチャ"
   },
   {
@@ -23,7 +32,7 @@
     "startDate": "2026-11-06",
     "startTime": "15:00",
     "endDate": "2026-11-12",
-    "endTime": "14:49",
+    "endTime": "14:59",
     "badgeText": "ガチャ"
   },
   {
