@@ -1,5 +1,14 @@
 [
   {
+    "title": "トレジャーハントミッション",
+    "type": "event",
+    "startDate": "2026-11-11",
+    "startTime": "15:00",
+    "endDate": "2026-11-19",
+    "endTime": "14:59",
+    "badgeText": "イベント"
+  },
+  {
     "title": "9周年記念 インテンシブドリル",
     "type": "campaign",
     "startDate": "2026-11-09",
