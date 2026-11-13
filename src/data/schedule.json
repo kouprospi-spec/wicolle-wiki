@@ -1,5 +1,14 @@
 [
   {
+    "title": "HGファイブスター11連ガチャ",
+    "type": "gacha",
+    "startDate": "2026-11-12",
+    "startTime": "15:00",
+    "endDate": "2026-11-16",
+    "endTime": "14:59",
+    "badgeText": "ガチャ"
+  },
+  {
     "title": "トレジャーハントミッション",
     "type": "event",
     "startDate": "2026-11-11",
