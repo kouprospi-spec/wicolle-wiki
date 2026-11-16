@@ -1,5 +1,22 @@
 [
   {
+    "id": "gacha-meteora-2nd-2026",
+    "title": "METEORAピックアップ11連ガチャ",
+    "startDate": "2026-11-16",
+    "startTime": "16:00",
+    "endDate": "2026-11-30",
+    "endTime": "14:59",
+    "featuredPlayerIds": [
+      "rodrigo-national-meteora-2026",
+      "gabriel-national-meteora-2026",
+      "donnarumma-national-meteora-2026",
+      "gakpo-national-meteora-2026",
+      "konate-national-meteora-2026",
+      "de-ketelaere-national-meteora-2026",
+      "dumfries-national-meteora-2026"
+    ]
+  },
+  {
     "id": "gacha-supremos-9th-2nd-2026",
     "title": "9th Anniversary SUPREMOSピックアップ11連ガチャ",
     "startDate": "2026-10-31",
