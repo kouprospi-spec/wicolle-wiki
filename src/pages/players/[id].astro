@@ -15,7 +15,8 @@ const { player } = Astro.props;
 const s = player.status;
 
 // ⚽ ポジションの色判定（大枠文字にも完全対応）
-function getPositionCategory(pos) {
+function getPositionCategory(pos: string): string {
+  if (!pos) return "";
   const p = pos.toUpperCase();
   if (["CF", "ST", "LWG", "RWG", "FW"].includes(p)) return "fw";
   if (["OMF", "CMF", "LSH", "RSH", "DMF", "MF"].includes(p)) return "mf";
@@ -25,8 +26,8 @@ function getPositionCategory(pos) {
 }
 
 // 📐 選手データに紐づくスキルオブジェクトをマスターから安全に取得する関数
-function getSkillInfo(skillName) {
-  const master = skillsMaster[skillName];
+function getSkillInfo(skillName: string) {
+  const master = (skillsMaster as Record<string, any>)[skillName];
   return {
     name: skillName,
     type: master ? master.type : "種類不明",
@@ -57,6 +58,20 @@ const statusData = [
   </div>
 
   <h1>【ウイコレ】{player.name}（{player.cardType}）のステータス・スキル詳細</h1>
+
+  {/* 🆕 🔐 所持フラグ切り替えコントロール */}
+  <div class="owned-toggle-wrapper">
+    <label class="owned-toggle-label" id="detail-owned-label">
+      <input 
+        type="checkbox" 
+        id="detail-owned-cb" 
+        data-player-id={player.id}
+        class="owned-toggle-checkbox"
+      />
+      <span class="owned-toggle-text">所持</span>
+    </label>
+  </div>
+
 
   <h2 class="section-title">{player.name}の基本情報・適正ポジション</h2>
   <div class="profile-flex-container">
@@ -103,12 +118,25 @@ const statusData = [
       </thead>
       <tbody>
         {statusData.map((row) => {
-          const total = row.s.ofe + row.s.tec + row.s.sta + row.s.def + row.s.pow + row.s.spd;
+          const st = (row.s || {}) as { [key: string]: any };
+          const ofe = Number(st.ofe) || 0;
+          const tec = Number(st.tec) || 0;
+          const sta = Number(st.sta) || 0;
+          const def = Number(st.def) || 0;
+          const pow = Number(st.pow) || 0;
+          const spd = Number(st.spd) || 0;
+          const total = ofe + tec + sta + def + pow + spd;
+
           return (
             <tr class={`status-data-row type-${row.type}`}>
               <td class={`lv-label ${row.type === 'kira' ? 'kira' : ''}`}>{row.label}</td>
-              <td>{row.s.ofe}</td><td>{row.s.tec}</td><td>{row.s.sta}</td><td>{row.s.def}</td><td>{row.s.pow}</td><td>{row.s.spd}</td>
-              <td class="total-val">{total}</td>
+              <td>{st.ofe ?? "-"}</td>
+              <td>{st.tec ?? "-"}</td>
+              <td>{st.sta ?? "-"}</td>
+              <td>{st.def ?? "-"}</td>
+              <td>{st.pow ?? "-"}</td>
+              <td>{st.spd ?? "-"}</td>
+              <td class="total-val">{total > 0 ? total : "-"}</td>
             </tr>
           );
         })}
@@ -173,6 +201,45 @@ const statusData = [
 
 <script>
   function initPageLogic() {
+    // 🆕 🔐 所持フラグの読み込みと切り替え保存（一覧画面と完全連動）
+    const detailOwnedCb = document.getElementById('detail-owned-cb') as HTMLInputElement;
+    const detailOwnedLabel = document.getElementById('detail-owned-label') as HTMLElement;
+
+    if (detailOwnedCb && detailOwnedLabel) {
+      const playerId = detailOwnedCb.getAttribute('data-player-id');
+
+      const updateOwnedUI = (isOwned: boolean) => {
+        detailOwnedCb.checked = isOwned;
+        if (isOwned) {
+          detailOwnedLabel.classList.add('is-owned');
+        } else {
+          detailOwnedLabel.classList.remove('is-owned');
+        }
+      };
+
+      // 初期表示時の状態同期
+      if (playerId) {
+        const stored = localStorage.getItem('wcc_owned_players');
+        const ownedIds: string[] = stored ? JSON.parse(stored) : [];
+        updateOwnedUI(ownedIds.includes(playerId));
+      }
+
+      // チェック変更時の保存処理
+      detailOwnedCb.addEventListener('change', () => {
+        if (!playerId) return;
+        const stored = localStorage.getItem('wcc_owned_players');
+        let ownedIds: string[] = stored ? JSON.parse(stored) : [];
+
+        if (detailOwnedCb.checked) {
+          if (!ownedIds.includes(playerId)) ownedIds.push(playerId);
+        } else {
+          ownedIds = ownedIds.filter((id) => id !== playerId);
+        }
+        localStorage.setItem('wcc_owned_players', JSON.stringify(ownedIds));
+        updateOwnedUI(detailOwnedCb.checked);
+      });
+    }
+
     // 🔘 ステータスタブ切り替え
     const tabBtns = document.querySelectorAll('.status-tab-btn');
     const statusRows = document.querySelectorAll('.status-data-row');
@@ -241,7 +308,46 @@ const statusData = [
 <style>
   .breadcrumb { font-size: 0.85rem; color: #666; margin-bottom: 15px; }
   .breadcrumb a { color: #0073e6; text-decoration: none; }
-  h1 { font-size: 1.6rem; color: #111111; margin: 0 0 20px 0; border-bottom: 1px solid #e1e4e6; padding-bottom: 15px; }
+  h1 { font-size: 1.6rem; color: #111111; margin: 0 0 15px 0; border-bottom: 1px solid #e1e4e6; padding-bottom: 15px; }
+
+  /* 🆕 🔐 所持フラグ切り替えボタンのスタイル */
+  .owned-toggle-wrapper {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 15px;
+  }
+  .owned-toggle-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background-color: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+    font-weight: bold;
+    color: #475569;
+    font-size: 0.85rem;
+  }
+  .owned-toggle-label:hover {
+    background-color: #f1f5f9;
+    border-color: #94a3b8;
+  }
+  .owned-toggle-label.is-owned {
+    background-color: #e6fffa;
+    border-color: #00bfa5;
+    color: #00796b;
+  }
+  .owned-toggle-checkbox {
+    width: 15px;
+    height: 15px;
+    cursor: pointer;
+    margin: 0;
+    accent-color: #00bfa5;
+  }
+
   .section-title { background-color: #00bfa5; color: #ffffff; font-size: 1.25rem; padding: 10px 15px; margin: 35px 0 15px 0; border-radius: 4px; font-weight: bold; }
   .card-type-highlight { font-weight: bold; color: #e67e22; }
   .pos-group-label { font-size: 0.85rem; color: #555; display: inline-block; width: 90px; font-weight: bold; }
@@ -263,7 +369,7 @@ const statusData = [
   .status-table-bottom th, .status-table-bottom td { border: 1px solid #e1e4e6; padding: 12px 15px; text-align: left; font-size: 0.95rem; }
   .status-table-bottom th { background-color: #f7f9fa; width: 32%; color: #555; font-weight: bold; white-space: nowrap; }
 
-    .skill-cell { position: relative; }
+  .skill-cell { position: relative; }
   .skill-pop-btn { background: none; border: none; padding: 0; color: #0073e6; font-size: 0.95rem; font-weight: bold; cursor: pointer; text-decoration: underline; font-family: inherit; }
   .skill-pop-btn:hover { color: #0056b3; }
 
@@ -307,7 +413,7 @@ const statusData = [
   .pos-badge.main.gk { background-color: #f1c40f; color: #000000; border: 1px solid #d4ac0d; }
   .pos-badge.sub.gk  { background-color: #fef9e7; color: #b7950b; border: 1px solid #f9e79f; }
 
-    /* 📱 スマホ画面（画面幅768px以下）で選手詳細ページを100%最適化する設定 */
+  /* 📱 スマホ画面（画面幅768px以下）で選手詳細ページを100%最適化する設定 */
   @media (max-width: 768px) {
     /* 1. 横並びのレイアウトを縦並びに安全に切り替える */
     .profile-flex-container {
@@ -355,5 +461,4 @@ const statusData = [
       left: 5% !important;
     }
   }
-
 </style>

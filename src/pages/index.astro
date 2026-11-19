@@ -48,6 +48,7 @@ function getPositionCategory(pos: string): string {
               <option value="cardType">シリーズ</option>
               <option value="country">国・所属</option>
               <option value="skill">所持スキル</option>
+              <option value="customSense">カスタムセンス</option>
             </select>
           </div>
 
@@ -151,7 +152,7 @@ function getPositionCategory(pos: string): string {
   {/* 🆕 🔢 ページネーションコントロール（上部） */}
   <div id="pagination-container-top" style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 15px; flex-wrap: wrap;"></div>
   
-    {/* 📋 選手リストコンテナ */}
+  {/* 📋 選手リストコンテナ */}
   <div id="player-list-wrapper" style="border: 1px solid #e1e4e6; border-radius: 8px; overflow: hidden; background-color: #ffffff;">
     {players.map((player) => {
       let rowStyle = "display: flex; align-items: center; padding: 14px 20px; flex-wrap: wrap; gap: 15px; transition: opacity 0.2s; border-bottom: 1px solid #e1e4e6;";
@@ -171,6 +172,9 @@ function getPositionCategory(pos: string): string {
       const mainPosCat = getPositionCategory(currentPos);
       const allSkills = [...(player.specialSkills || []), ...(player.selectSkills || [])].join(',');
       const mainPositionsStr = (player.positionsMain || []).join(',').toLowerCase();
+      const customSenseStr = Array.isArray(player.customSense) 
+        ? player.customSense.join(',') 
+        : (player.customSense || "");
 
       const k = (player.status && player.status.kira_lv80 ? player.status.kira_lv80 : {}) as { [key: string]: number };
 
@@ -194,6 +198,7 @@ function getPositionCategory(pos: string): string {
           data-main-positions={mainPositionsStr}
           data-type={player.type} 
           data-skills={allSkills} 
+          data-custom-sense={customSenseStr}
           data-country={player.country} 
           data-cardtype={player.cardType}
           data-birth={birth}
@@ -243,17 +248,15 @@ function getPositionCategory(pos: string): string {
     const pagContainerTop = document.getElementById('pagination-container-top') as HTMLElement;
     const pagContainerBottom = document.getElementById('pagination-container-bottom') as HTMLElement;
     const searchName = document.getElementById('search-name') as HTMLInputElement;
-    const filterOwned = document.getElementById('filter-owned') as HTMLInputElement; // 🆕 所持フィルター取得
+    const filterOwned = document.getElementById('filter-owned') as HTMLInputElement;
 
     if (!sortOrder || !wrapper || !noMsg || !pagContainerTop || !pagContainerBottom || !searchName || !filterOwned) return;
 
     const initialItems = Array.from(wrapper.querySelectorAll('.player-list-item')) as HTMLElement[];
     const filterRows = Array.from(document.querySelectorAll('.filter-row'));
 
-    // 📄 ページネーション状態管理
     let currentPage = 1;
 
-    // 🆕 LocalStorageから初期の所持リストを読み込み、各行のチェック状態を同期
     function syncOwnedCheckboxes() {
       const stored = localStorage.getItem('wcc_owned_players');
       const ownedIds = stored ? JSON.parse(stored) : [];
@@ -266,17 +269,14 @@ function getPositionCategory(pos: string): string {
       });
     }
 
-    // 🆕 各選手のチェックボックスへのイベント設定（Aタグの遷移を防止し、状態を保存）
     initialItems.forEach(item => {
       const cb = item.querySelector('.player-owned-cb') as HTMLInputElement;
       if (!cb) return;
 
-      // リンク遷移（バブリング）を止める
       cb.addEventListener('click', (e) => {
         e.stopPropagation();
       });
 
-      // チェック変更時にLocalStorageへ保存してリストを再更新
       cb.addEventListener('change', () => {
         const pId = item.getAttribute('data-id');
         if (!pId) return;
@@ -291,17 +291,14 @@ function getPositionCategory(pos: string): string {
         }
         localStorage.setItem('wcc_owned_players', JSON.stringify(ownedIds));
 
-        // 「所持済みのみ表示」がONの場合は、リスト変動を反映させるため再描画
         if (filterOwned.checked) {
           updateList();
         }
       });
     });
 
-    // 初期化時にチェックボックスの状態を復元
     syncOwnedCheckboxes();
 
-    // 表示件数変更時のイベントを設定
     const itemsPerPageSelect = document.getElementById('items-per-page') as HTMLSelectElement;
     if (itemsPerPageSelect) {
       itemsPerPageSelect.addEventListener('change', () => {
@@ -310,13 +307,11 @@ function getPositionCategory(pos: string): string {
       });
     }
 
-    // 🆕 所持済みのみ表示フィルターのイベント設定
     filterOwned.addEventListener('change', () => {
       currentPage = 1;
       updateList();
     });
 
-    // 各条件行のUI表示切り替えを設定
     filterRows.forEach(row => {
       const filterType = row.querySelector('.filter-type') as HTMLSelectElement;
       const msgDefault = row.querySelector('.cond-default-msg') as HTMLElement;
@@ -342,9 +337,15 @@ function getPositionCategory(pos: string): string {
         if (type === 'mainPos' && selectMainPos) selectMainPos.style.display = 'inline-block';
         if (type === 'type' && selectType) selectType.style.display = 'inline-block';
         if (type === 'cardType' && selectCardType) selectCardType.style.display = 'inline-block';
-        if ((type === 'skill' || type === 'country') && inputKeyword) {
+        if ((type === 'skill' || type === 'country' || type === 'customSense') && inputKeyword) {
           inputKeyword.style.display = 'inline-block';
-          inputKeyword.placeholder = type === 'skill' ? 'スキル名を入力...' : '国名・所属を入力...';
+          if (type === 'skill') {
+            inputKeyword.placeholder = 'スキル名を入力...';
+          } else if (type === 'customSense') {
+            inputKeyword.placeholder = 'カスタムセンスを入力...';
+          } else {
+            inputKeyword.placeholder = '国名・所属を入力...';
+          }
         }
         if (inputKeyword) inputKeyword.value = '';
 
@@ -360,13 +361,11 @@ function getPositionCategory(pos: string): string {
       if (inputKeyword) inputKeyword.addEventListener('input', () => { currentPage = 1; updateList(); });
     });
 
-    // 選手名入力時のリアルタイムイベントを設定
     searchName.addEventListener('input', () => {
       currentPage = 1;
       updateList();
     });
 
-    // 🔢 ページネーションUIの動的生成（上下対応版）
     function renderPagination(totalVisibleCount: number) {
       pagContainerTop.innerHTML = '';
       pagContainerBottom.innerHTML = '';
@@ -417,7 +416,6 @@ function getPositionCategory(pos: string): string {
       const nameQuery = searchName.value.toLowerCase().trim();
       const itemsPerPage = parseInt(itemsPerPageSelect?.value || '20', 10);
       
-      // 🆕 フィルタ条件の取得
       const showOwnedOnly = filterOwned.checked;
       const stored = localStorage.getItem('wcc_owned_players');
       const ownedIds = stored ? JSON.parse(stored) : [];
@@ -437,7 +435,6 @@ function getPositionCategory(pos: string): string {
       const matchedItems = initialItems.filter(item => {
         const playerId = item.getAttribute('data-id') || '';
 
-        // 🆕 所持フラグによるフィルタリング判定
         if (showOwnedOnly && !ownedIds.includes(playerId)) {
           return false;
         }
@@ -454,6 +451,7 @@ function getPositionCategory(pos: string): string {
           if (filter.type === 'type') return item.getAttribute('data-type') === filter.playerType;
           if (filter.type === 'cardType') return (item.getAttribute('data-cardtype') || "").includes(filter.cardType);
           if (filter.type === 'skill') return (item.getAttribute('data-skills') || "").toLowerCase().includes(filter.keyword);
+          if (filter.type === 'customSense') return (item.getAttribute('data-custom-sense') || "").toLowerCase().includes(filter.keyword);
           if (filter.type === 'country') return (item.getAttribute('data-country') || "").toLowerCase().includes(filter.keyword);
           return true;
         });
@@ -533,6 +531,25 @@ function getPositionCategory(pos: string): string {
 
   initAdvancedSearch();
   document.addEventListener('astro:after-swap', initAdvancedSearch);
+
+  // ブラウザの「戻る」ボタン（bfcache復元）で一覧に戻った際も所持状態を同期する
+  window.addEventListener('pageshow', (event) => {
+    if (event.persisted) {
+      // チェックボックスの状態を再同期
+      const stored = localStorage.getItem('wcc_owned_players');
+      const ownedIds = stored ? JSON.parse(stored) : [];
+      document.querySelectorAll('.player-list-item').forEach(item => {
+        const pId = item.getAttribute('data-id');
+        const cb = item.querySelector('.player-owned-cb') as HTMLInputElement;
+        if (cb && pId) {
+          cb.checked = ownedIds.includes(pId);
+        }
+      });
+      // 絞り込み状態を更新するためchangeイベントを発火
+      const filterOwned = document.getElementById('filter-owned');
+      if (filterOwned) filterOwned.dispatchEvent(new Event('change'));
+    }
+  });
 </script>
 
 <style is:global>
