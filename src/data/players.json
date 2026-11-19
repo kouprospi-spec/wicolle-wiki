@@ -2523,5 +2523,30 @@
       "kira_lv70": { "ofe": 1035, "tec": 1088, "sta": 1278, "def": 1243, "pow": 1196, "spd": 1278 },
       "kira_lv80": { "ofe": 1968, "tec": 2068, "sta": 2430, "def": 2362, "pow": 2274, "spd": 2429 }
     }
+  },
+  {
+    "id": "kaka-legend-2026",
+    "name": "カカ",
+    "cardType": "レジェンド 2026",
+    "image": "/images/players/kaka-legend-2026.png",
+    "grade": 126,
+    "position": "FW",
+    "country": "ACミラン",
+    "birth": "1982-04-22",
+    "teamSkill": "FW全パラメータ強化A＋",
+    "positionsMain": ["ST", "LWG", "OMF", "LSH"],
+    "positionsSub": ["RWG", "CMF", "RSH"],
+    "type": "テクニック",
+    "specialSkills": ["マーゴ・ド・ディアボロ", "クリティカルシューター"],
+    "selectSkills": ["SPEEDING BULLET", "スラッシュアウェイ"],
+    "customSense": "ミドルシューター＋",
+    "status": {
+      "normal_lv1": { "ofe": 395, "tec": 296, "sta": 264, "def": 85, "pow": 243, "spd": 266 },
+      "normal_lv70": { "ofe": 1723, "tec": 1290, "sta": 1149, "def": 370, "pow": 1061, "spd": 1158 },
+      "normal_lv80": { "ofe": 3275, "tec": 2452, "sta": 2184, "def": 703, "pow": 2016, "spd": 2201 },
+      "kira_lv1": { "ofe": 434, "tec": 326, "sta": 290, "def": 94, "pow": 267, "spd": 293 },
+      "kira_lv70": { "ofe": 1895, "tec": 1419, "sta": 1264, "def": 407, "pow": 1167, "spd": 1274 },
+      "kira_lv80": { "ofe": 3602, "tec": 2697, "sta": 2402, "def": 773, "pow": 2218, "spd": 2421 }
+    }
   }
 ]
