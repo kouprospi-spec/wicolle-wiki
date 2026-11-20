@@ -1,5 +1,14 @@
 [
   {
+    "title": "SPECIAL LEAGUE（シーズン「25-26」と「2026」の選手カード対象）",
+    "type": "event",
+    "startDate": "2026-11-23",
+    "startTime": "03:00",
+    "endDate": "2026-11-30",
+    "endTime": "02:59",
+    "badgeText": "イベント"
+  },
+  {
     "title": "METEORAピックアップ11連ガチャ",
     "type": "gacha",
     "startDate": "2026-11-16",
