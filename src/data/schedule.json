@@ -1,5 +1,23 @@
 [
   {
+    "title": "ダイヤモンドスカウト",
+    "type": "campaign",
+    "startDate": "2026-11-23",
+    "startTime": "03:00",
+    "endDate": "",
+    "endTime": "",
+    "badgeText": "キャンペーン"
+  },
+  {
+    "title": "9th Anniversary記念 グレードアップ11連ガチャ",
+    "type": "gacha",
+    "startDate": "2026-11-21",
+    "startTime": "15:00",
+    "endDate": "2026-11-26",
+    "endTime": "14:59",
+    "badgeText": "ガチャ"
+  },
+  {
     "title": "SPECIAL LEAGUE（シーズン「25-26」と「2026」の選手カード対象）",
     "type": "event",
     "startDate": "2026-11-23",
