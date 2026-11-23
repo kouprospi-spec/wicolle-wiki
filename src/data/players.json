@@ -2548,5 +2548,30 @@
       "kira_lv70": { "ofe": 1895, "tec": 1419, "sta": 1264, "def": 407, "pow": 1167, "spd": 1274 },
       "kira_lv80": { "ofe": 3602, "tec": 2697, "sta": 2402, "def": 773, "pow": 2218, "spd": 2421 }
     }
+  },
+  {
+    "id": "gvardiol-national-limited-2026",
+    "name": "ヨシュコ グヴァルディオル",
+    "cardType": "ナショナル 2026",
+    "image": "/images/players/gvardiol-national-limited-2026.png",
+    "grade": 121,
+    "position": "DF",
+    "country": "クロアチア",
+    "birth": "2002-01-23",
+    "teamSkill": "スタメンディフェンス強化＋",
+    "positionsMain": ["CB", "LSB"],
+    "positionsSub": ["LSH"],
+    "type": "スタミナ",
+    "specialSkills": ["リアドミネーター", "低弾道ロブ"],
+    "selectSkills": ["カットビジョン", "ウイングブロッカー"],
+    "customSense": "バックライナー＋",
+    "status": {
+      "normal_lv1": { "ofe": 95, "tec": 222, "sta": 275, "def": 382, "pow": 275, "spd": 241 },
+      "normal_lv70": { "ofe": 414, "tec": 964, "sta": 1195, "def": 1658, "pow": 1195, "spd": 1047 },
+      "normal_lv80": { "ofe": 787, "tec": 1833, "sta": 2272, "def": 3150, "pow": 2271, "spd": 1991 },
+      "kira_lv1": { "ofe": 104, "tec": 244, "sta": 302, "def": 420, "pow": 302, "spd": 265 },
+      "kira_lv70": { "ofe": 455, "tec": 1060, "sta": 1314, "def": 1824, "pow": 1314, "spd": 1152 },
+      "kira_lv80": { "ofe": 866, "tec": 2016, "sta": 2499, "def": 3465, "pow": 2498, "spd": 2190 }
+    }
   }
 ]
