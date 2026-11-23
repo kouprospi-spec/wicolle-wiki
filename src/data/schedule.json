@@ -4,8 +4,8 @@
     "type": "campaign",
     "startDate": "2026-11-23",
     "startTime": "03:00",
-    "endDate": "",
-    "endTime": "",
+    "endDate": "2026-12-28",
+    "endTime": "02:59",
     "badgeText": "キャンペーン"
   },
   {
@@ -40,8 +40,8 @@
     "type": "event",
     "startDate": "2026-11-19",
     "startTime": "15:00",
-    "endDate": "",
-    "endTime": "",
+    "endDate": "2026-11-26",
+    "endTime": "14:59",
     "badgeText": "イベント"
   },
   {

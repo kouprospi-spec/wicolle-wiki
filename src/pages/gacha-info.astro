@@ -254,32 +254,40 @@ const pastGachaItems = gachaList
 
     if (!tabActive || !tabPast || !sectionActive || !sectionPast || !filterYear || !filterMonth || !pastWrapper || !noPastMsg) return;
 
-    // 🔘 1. タブ切り替えロジック
-    tabActive.addEventListener('click', () => {
-      tabActive.classList.add('active');
-      tabPast.classList.remove('active');
-      sectionActive.style.display = 'block';
-      sectionPast.style.display = 'none';
-    });
+    // 🔘 1. タブ切り替えロジック（状態保存を追加）
+    function switchGachaTab(tabName: 'active' | 'past') {
+      if (tabName === 'active') {
+        tabActive!.classList.add('active');
+        tabPast!.classList.remove('active');
+        sectionActive!.style.display = 'block';
+        sectionPast!.style.display = 'none';
+      } else {
+        tabPast!.classList.add('active');
+        tabActive!.classList.remove('active');
+        sectionActive!.style.display = 'none';
+        sectionPast!.style.display = 'block';
+      }
+      sessionStorage.setItem('wcc_gacha_tab', tabName);
+    }
 
-    tabPast.addEventListener('click', () => {
-      tabPast.classList.add('active');
-      tabActive.classList.remove('active');
-      sectionActive.style.display = 'none';
-      sectionPast.style.display = 'block';
-    });
+    tabActive.addEventListener('click', () => switchGachaTab('active'));
+    tabPast.addEventListener('click', () => switchGachaTab('past'));
+
+    // 保存されたタブ状態を復元
+    const savedTab = sessionStorage.getItem('wcc_gacha_tab');
+    if (savedTab === 'past') {
+      switchGachaTab('past');
+    }
 
     // 🗓️ 2. 過去ガチャデータの年選択肢を動的に生成
     const pastCards = Array.from<HTMLElement>(pastWrapper.querySelectorAll('.past-gacha-card'));
     const yearsSet = new Set<number>();
     
     const nowJST = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
-
-    // 🆕 現在の月の「1ヶ月前」のDateオブジェクトを作成（年跨ぎも自動計算されます）
     nowJST.setMonth(nowJST.getMonth() - 1);
 
-    const currentYear = nowJST.getFullYear();
-    const currentMonth = nowJST.getMonth() + 1;
+    const defaultYear = nowJST.getFullYear();
+    const defaultMonth = nowJST.getMonth() + 1;
 
     pastCards.forEach(card => {
       const startStr = card.getAttribute('data-start-date');
@@ -288,23 +296,33 @@ const pastGachaItems = gachaList
       if (endStr) yearsSet.add(new Date(endStr.replace(/-/g, '/')).getFullYear());
     });
 
-    if (yearsSet.size === 0) yearsSet.add(currentYear);
+    if (yearsSet.size === 0) yearsSet.add(defaultYear);
+
+    // 保存された年月を取得（なければデフォルト値）
+    const savedYear = sessionStorage.getItem('wcc_gacha_year');
+    const savedMonth = sessionStorage.getItem('wcc_gacha_month');
 
     filterYear.innerHTML = '';
     Array.from(yearsSet).sort((a, b) => b - a).forEach(year => {
       const opt = document.createElement('option');
       opt.value = year.toString();
       opt.innerText = `${year}年`;
-      if (year === currentYear) opt.selected = true;
+      if (savedYear ? year.toString() === savedYear : year === defaultYear) {
+        opt.selected = true;
+      }
       filterYear.appendChild(opt);
     });
 
-    filterMonth.value = currentMonth.toString();
+    filterMonth.value = savedMonth ? savedMonth : defaultMonth.toString();
 
-    // 🗓️ 3. 期間交差フィルター（指定月に1日でも重なっていれば表示）
+    // 🗓️ 3. 期間交差フィルター（状態保存を追加）
     function updatePastFilter() {
       const selectedYear = parseInt(filterYear.value, 10);
       const selectedMonth = parseInt(filterMonth.value, 10);
+
+      // 選択状態を保存
+      sessionStorage.setItem('wcc_gacha_year', filterYear.value);
+      sessionStorage.setItem('wcc_gacha_month', filterMonth.value);
 
       const targetStart = new Date(selectedYear, selectedMonth - 1, 1, 0, 0, 0).getTime();
       const targetEnd = new Date(selectedYear, selectedMonth, 0, 23, 59, 59).getTime();

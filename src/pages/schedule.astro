@@ -167,7 +167,7 @@ const weeks = Array.from({ length: 4 }, (_, weekIdx) => {
     const clientTodayStr = `${nowJST.getFullYear()}-${String(nowJST.getMonth() + 1).padStart(2, '0')}-${String(nowJST.getDate()).padStart(2, '0')}`;
 
     const rows = document.querySelectorAll('.daily-row');
-    let activeWeekIndex = "0"; // デフォルトは0番目
+    let activeWeekIndex = "0";
 
     rows.forEach(row => {
       const el = row as HTMLElement;
@@ -183,7 +183,6 @@ const weeks = Array.from({ length: 4 }, (_, weekIdx) => {
         dateBoxStyle += " background-color: #00bfa5; color: #ffffff;";
         if (todayBadge) todayBadge.style.display = 'block';
 
-        // 💡 今日（11/16など）の行が属している親パネル（week-panel-X）の番号を取得！
         const parentPanel = el.closest('.schedule-week-panel');
         if (parentPanel && parentPanel.id) {
           activeWeekIndex = parentPanel.id.replace('week-panel-', '');
@@ -200,22 +199,20 @@ const weeks = Array.from({ length: 4 }, (_, weekIdx) => {
     const buttons = document.querySelectorAll('.schedule-tab-btn');
     const panels = document.querySelectorAll('.schedule-week-panel');
 
-    // 💡 タブ切り替えと「今週」ラベル更新用の関数
     function switchWeekTab(targetIndex: string) {
+      sessionStorage.setItem('wcc_schedule_week_tab', targetIndex);
+
       buttons.forEach(btn => {
         const btnIdx = btn.getAttribute('data-week-index');
-        // 元の「今週 (M/D～M/D)」から「今週 ()」を外して日付範囲だけ取り出す
         const rawRange = (btn.textContent || '').replace(/^今週\s*\((.+)\)$/, '$1').trim();
 
         if (btnIdx === targetIndex) {
           btn.classList.add('active');
-          // 今日が含まれる週のタブだけを「今週 (...)」表記にする
           if (btnIdx === activeWeekIndex) {
             btn.textContent = `今週 (${rawRange})`;
           }
         } else {
           btn.classList.remove('active');
-          // 過去の週など、今週以外のタブからは「今週」表記を外す
           if (btnIdx !== activeWeekIndex) {
             btn.textContent = rawRange;
           }
@@ -228,8 +225,12 @@ const weeks = Array.from({ length: 4 }, (_, weekIdx) => {
       });
     }
 
-    // 💡 ページ読み込み時に「今日が含まれる週」を自動で初期表示にする
-    switchWeekTab(activeWeekIndex);
+    const savedWeekTab = sessionStorage.getItem('wcc_schedule_week_tab');
+    const initialTab = (savedWeekTab && document.getElementById(`week-panel-${savedWeekTab}`)) 
+      ? savedWeekTab 
+      : activeWeekIndex;
+
+    switchWeekTab(initialTab);
 
     buttons.forEach(button => {
       button.addEventListener('click', () => {
@@ -238,7 +239,6 @@ const weeks = Array.from({ length: 4 }, (_, weekIdx) => {
       });
     });
 
-    // --- 以下、カウントダウン処理（変更なし） ---
     function updateCountdowns() {
       const nowTime = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo" })).getTime();
       const badges = document.querySelectorAll('.live-countdown-badge');

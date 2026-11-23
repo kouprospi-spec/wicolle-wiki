@@ -249,6 +249,7 @@ function getPositionCategory(pos: string): string {
     const pagContainerBottom = document.getElementById('pagination-container-bottom') as HTMLElement;
     const searchName = document.getElementById('search-name') as HTMLInputElement;
     const filterOwned = document.getElementById('filter-owned') as HTMLInputElement;
+    const itemsPerPageSelect = document.getElementById('items-per-page') as HTMLSelectElement;
 
     if (!sortOrder || !wrapper || !noMsg || !pagContainerTop || !pagContainerBottom || !searchName || !filterOwned) return;
 
@@ -256,6 +257,93 @@ function getPositionCategory(pos: string): string {
     const filterRows = Array.from(document.querySelectorAll('.filter-row'));
 
     let currentPage = 1;
+
+    // 検索・フィルター状態の保存関数
+    function saveSearchState() {
+      const filtersState = filterRows.map(row => ({
+        type: (row.querySelector('.filter-type') as HTMLSelectElement).value,
+        pos: (row.querySelector('.cond-pos') as HTMLSelectElement).value,
+        mainPos: (row.querySelector('.cond-main-pos') as HTMLSelectElement).value,
+        playerType: (row.querySelector('.cond-type') as HTMLSelectElement).value,
+        cardType: (row.querySelector('.cond-cardtype') as HTMLSelectElement).value,
+        keyword: (row.querySelector('.cond-keyword') as HTMLInputElement).value
+      }));
+
+      const state = {
+        nameQuery: searchName.value,
+        sort: sortOrder.value,
+        ownedOnly: filterOwned.checked,
+        itemsPerPage: itemsPerPageSelect ? itemsPerPageSelect.value : '20',
+        page: currentPage,
+        filters: filtersState
+      };
+      sessionStorage.setItem('wcc_players_search_state', JSON.stringify(state));
+    }
+
+    // フォームUIの表示切り替えヘルパー
+    function updateFilterRowUI(row: Element, clearKeyword = true) {
+      const filterType = row.querySelector('.filter-type') as HTMLSelectElement;
+      const msgDefault = row.querySelector('.cond-default-msg') as HTMLElement;
+      const selectPos = row.querySelector('.cond-pos') as HTMLSelectElement;
+      const selectMainPos = row.querySelector('.cond-main-pos') as HTMLSelectElement;
+      const selectType = row.querySelector('.cond-type') as HTMLSelectElement;
+      const selectCardType = row.querySelector('.cond-cardtype') as HTMLSelectElement;
+      const inputKeyword = row.querySelector('.cond-keyword') as HTMLInputElement;
+
+      const type = filterType.value;
+      if (msgDefault) msgDefault.style.display = 'none';
+      if (selectPos) selectPos.style.display = 'none';
+      if (selectMainPos) selectMainPos.style.display = 'none';
+      if (selectType) selectType.style.display = 'none';
+      if (selectCardType) selectCardType.style.display = 'none';
+      if (inputKeyword) inputKeyword.style.display = 'none';
+
+      if (type === 'all' && msgDefault) msgDefault.style.display = 'inline-block';
+      if (type === 'pos' && selectPos) selectPos.style.display = 'inline-block';
+      if (type === 'mainPos' && selectMainPos) selectMainPos.style.display = 'inline-block';
+      if (type === 'type' && selectType) selectType.style.display = 'inline-block';
+      if (type === 'cardType' && selectCardType) selectCardType.style.display = 'inline-block';
+      if ((type === 'skill' || type === 'country' || type === 'customSense') && inputKeyword) {
+        inputKeyword.style.display = 'inline-block';
+        if (type === 'skill') {
+          inputKeyword.placeholder = 'スキル名を入力...';
+        } else if (type === 'customSense') {
+          inputKeyword.placeholder = 'カスタムセンスを入力...';
+        } else {
+          inputKeyword.placeholder = '国名・所属を入力...';
+        }
+      }
+      if (clearKeyword && inputKeyword) inputKeyword.value = '';
+    }
+
+    // 保存された状態の復元
+    const savedStateRaw = sessionStorage.getItem('wcc_players_search_state');
+    if (savedStateRaw) {
+      try {
+        const savedState = JSON.parse(savedStateRaw);
+        if (savedState.nameQuery) searchName.value = savedState.nameQuery;
+        if (savedState.sort) sortOrder.value = savedState.sort;
+        if (typeof savedState.ownedOnly === 'boolean') filterOwned.checked = savedState.ownedOnly;
+        if (savedState.itemsPerPage && itemsPerPageSelect) itemsPerPageSelect.value = savedState.itemsPerPage;
+        if (savedState.page) currentPage = savedState.page;
+
+        if (Array.isArray(savedState.filters)) {
+          filterRows.forEach((row, idx) => {
+            const f = savedState.filters[idx];
+            if (!f) return;
+            (row.querySelector('.filter-type') as HTMLSelectElement).value = f.type || 'all';
+            (row.querySelector('.cond-pos') as HTMLSelectElement).value = f.pos || 'fw';
+            (row.querySelector('.cond-main-pos') as HTMLSelectElement).value = f.mainPos || 'cf';
+            (row.querySelector('.cond-type') as HTMLSelectElement).value = f.playerType || 'テクニック';
+            (row.querySelector('.cond-cardtype') as HTMLSelectElement).value = f.cardType || 'レギュラー';
+            (row.querySelector('.cond-keyword') as HTMLInputElement).value = f.keyword || '';
+            updateFilterRowUI(row, false);
+          });
+        }
+      } catch (e) {
+        console.error('Failed to restore search state', e);
+      }
+    }
 
     function syncOwnedCheckboxes() {
       const stored = localStorage.getItem('wcc_owned_players');
@@ -299,7 +387,6 @@ function getPositionCategory(pos: string): string {
 
     syncOwnedCheckboxes();
 
-    const itemsPerPageSelect = document.getElementById('items-per-page') as HTMLSelectElement;
     if (itemsPerPageSelect) {
       itemsPerPageSelect.addEventListener('change', () => {
         currentPage = 1;
@@ -314,7 +401,6 @@ function getPositionCategory(pos: string): string {
 
     filterRows.forEach(row => {
       const filterType = row.querySelector('.filter-type') as HTMLSelectElement;
-      const msgDefault = row.querySelector('.cond-default-msg') as HTMLElement;
       const selectPos = row.querySelector('.cond-pos') as HTMLSelectElement;
       const selectMainPos = row.querySelector('.cond-main-pos') as HTMLSelectElement;
       const selectType = row.querySelector('.cond-type') as HTMLSelectElement;
@@ -323,37 +409,11 @@ function getPositionCategory(pos: string): string {
 
       if (!filterType) return;
 
-      function handleRowTypeChange() {
-        const type = filterType.value;
-        if (msgDefault) msgDefault.style.display = 'none';
-        if (selectPos) selectPos.style.display = 'none';
-        if (selectMainPos) selectMainPos.style.display = 'none';
-        if (selectType) selectType.style.display = 'none';
-        if (selectCardType) selectCardType.style.display = 'none';
-        if (inputKeyword) inputKeyword.style.display = 'none';
-
-        if (type === 'all' && msgDefault) msgDefault.style.display = 'inline-block';
-        if (type === 'pos' && selectPos) selectPos.style.display = 'inline-block';
-        if (type === 'mainPos' && selectMainPos) selectMainPos.style.display = 'inline-block';
-        if (type === 'type' && selectType) selectType.style.display = 'inline-block';
-        if (type === 'cardType' && selectCardType) selectCardType.style.display = 'inline-block';
-        if ((type === 'skill' || type === 'country' || type === 'customSense') && inputKeyword) {
-          inputKeyword.style.display = 'inline-block';
-          if (type === 'skill') {
-            inputKeyword.placeholder = 'スキル名を入力...';
-          } else if (type === 'customSense') {
-            inputKeyword.placeholder = 'カスタムセンスを入力...';
-          } else {
-            inputKeyword.placeholder = '国名・所属を入力...';
-          }
-        }
-        if (inputKeyword) inputKeyword.value = '';
-
+      filterType.addEventListener('change', () => {
+        updateFilterRowUI(row, true);
         currentPage = 1;
         updateList();
-      }
-
-      filterType.addEventListener('change', handleRowTypeChange);
+      });
       if (selectPos) selectPos.addEventListener('change', () => { currentPage = 1; updateList(); });
       if (selectMainPos) selectMainPos.addEventListener('change', () => { currentPage = 1; updateList(); });
       if (selectType) selectType.addEventListener('change', () => { currentPage = 1; updateList(); });
@@ -398,7 +458,7 @@ function getPositionCategory(pos: string): string {
           container.appendChild(pageBtn);
         }
 
-        const nextBtn = document.createElement('button');
+                const nextBtn = document.createElement('button');
         nextBtn.className = 'page-btn';
         nextBtn.innerText = '▶';
         nextBtn.disabled = currentPage === totalPages;
@@ -411,7 +471,7 @@ function getPositionCategory(pos: string): string {
       });
     }
 
-        function updateList() {
+    function updateList() {
       const sort = sortOrder.value;
       const nameQuery = searchName.value.toLowerCase().trim();
       const itemsPerPage = parseInt(itemsPerPageSelect?.value || '20', 10);
@@ -458,6 +518,8 @@ function getPositionCategory(pos: string): string {
       });
 
       const totalVisibleCount = matchedItems.length;
+      const totalPages = Math.max(1, Math.ceil(totalVisibleCount / itemsPerPage));
+      if (currentPage > totalPages) currentPage = totalPages;
 
       matchedItems.sort((a, b) => {
         const gradeA = parseInt(a.getAttribute('data-grade') || '0', 10);
@@ -520,9 +582,10 @@ function getPositionCategory(pos: string): string {
       wrapper.style.display = totalVisibleCount === 0 ? 'none' : 'block';
 
       renderPagination(totalVisibleCount);
+      saveSearchState();
     }
 
-    sortOrder.addEventListener('change', updateList);
+    sortOrder.addEventListener('change', () => { currentPage = 1; updateList(); });
     updateList();
 
     const navHome = document.getElementById('nav-home');
@@ -532,10 +595,8 @@ function getPositionCategory(pos: string): string {
   initAdvancedSearch();
   document.addEventListener('astro:after-swap', initAdvancedSearch);
 
-  // ブラウザの「戻る」ボタン（bfcache復元）で一覧に戻った際も所持状態を同期する
   window.addEventListener('pageshow', (event) => {
     if (event.persisted) {
-      // チェックボックスの状態を再同期
       const stored = localStorage.getItem('wcc_owned_players');
       const ownedIds = stored ? JSON.parse(stored) : [];
       document.querySelectorAll('.player-list-item').forEach(item => {
@@ -545,7 +606,6 @@ function getPositionCategory(pos: string): string {
           cb.checked = ownedIds.includes(pId);
         }
       });
-      // 絞り込み状態を更新するためchangeイベントを発火
       const filterOwned = document.getElementById('filter-owned');
       if (filterOwned) filterOwned.dispatchEvent(new Event('change'));
     }

@@ -201,7 +201,7 @@ const statusData = [
 
 <script>
   function initPageLogic() {
-    // 🆕 🔐 所持フラグの読み込みと切り替え保存（一覧画面と完全連動）
+    // 所持フラグの読み込みと切り替え保存
     const detailOwnedCb = document.getElementById('detail-owned-cb') as HTMLInputElement;
     const detailOwnedLabel = document.getElementById('detail-owned-label') as HTMLElement;
 
@@ -217,14 +217,12 @@ const statusData = [
         }
       };
 
-      // 初期表示時の状態同期
       if (playerId) {
         const stored = localStorage.getItem('wcc_owned_players');
         const ownedIds: string[] = stored ? JSON.parse(stored) : [];
         updateOwnedUI(ownedIds.includes(playerId));
       }
 
-      // チェック変更時の保存処理
       detailOwnedCb.addEventListener('change', () => {
         if (!playerId) return;
         const stored = localStorage.getItem('wcc_owned_players');
@@ -240,24 +238,35 @@ const statusData = [
       });
     }
 
-    // 🔘 ステータスタブ切り替え
+    // ステータスタブ切り替え（状態保存・復元対応）
     const tabBtns = document.querySelectorAll('.status-tab-btn');
     const statusRows = document.querySelectorAll('.status-data-row');
-    statusRows.forEach(row => {
-      if (row.classList.contains('type-kira')) (row as HTMLElement).style.display = 'none';
-    });
+
+    function switchStatusTab(type: string) {
+      sessionStorage.setItem('wcc_player_detail_status_tab', type);
+      tabBtns.forEach(b => {
+        if (b.getAttribute('data-status-type') === type) {
+          b.classList.add('active');
+        } else {
+          b.classList.remove('active');
+        }
+      });
+      statusRows.forEach(row => {
+        (row as HTMLElement).style.display = row.classList.contains(`type-${type}`) ? '' : 'none';
+      });
+    }
+
+    const savedStatusTab = sessionStorage.getItem('wcc_player_detail_status_tab') || 'normal';
+    switchStatusTab(savedStatusTab);
+
     tabBtns.forEach(btn => {
       btn.addEventListener('click', () => {
-        const type = btn.getAttribute('data-status-type');
-        tabBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        statusRows.forEach(row => {
-          (row as HTMLElement).style.display = row.classList.contains(`type-${type}`) ? '' : 'none';
-        });
+        const type = btn.getAttribute('data-status-type') || 'normal';
+        switchStatusTab(type);
       });
     });
 
-    // 💬 スキル吹き出しポップアップ処理
+    // スキル吹き出しポップアップ処理
     const skillBtns = document.querySelectorAll('.skill-pop-btn');
     const popover = document.getElementById('skill-popover');
     const popType = document.getElementById('popover-skill-type');
@@ -278,25 +287,23 @@ const statusData = [
       document.addEventListener('click', () => { popover.style.display = 'none'; });
     }
 
-    // 🖼️ 新設：画像拡大モーダル開閉ロジック
+    // 画像拡大モーダル開閉ロジック
     const cardTrigger = document.getElementById('player-card-trigger');
     const imgModal = document.getElementById('image-modal');
     const modalImg = document.getElementById('modal-target-img') as HTMLImageElement;
     const srcImg = document.getElementById('src-card-img') as HTMLImageElement;
 
     if (cardTrigger && imgModal && modalImg && srcImg) {
-      // カードをクリックしたら全画面モーダルを開く
       cardTrigger.addEventListener('click', (e) => {
         e.stopPropagation();
-        modalImg.src = srcImg.src; // 現在表示されている画像パスを同期（ノーマル/キラ両対応）
+        modalImg.src = srcImg.src;
         imgModal.style.display = 'flex';
-        document.body.style.overflow = 'hidden'; // 背景スクロールを禁止にする安心親切設計
+        document.body.style.overflow = 'hidden';
       });
 
-      // モーダルの背景（または画像）をクリックしたら閉じる
       imgModal.addEventListener('click', () => {
         imgModal.style.display = 'none';
-        document.body.style.overflow = ''; // スクロール禁止を解除
+        document.body.style.overflow = '';
       });
     }
   }
