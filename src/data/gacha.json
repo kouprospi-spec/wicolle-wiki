@@ -84,7 +84,7 @@
   },
   {
     "id": "gacha-prometheus-sep-2026",
-    "title": "9th Anniversary 超プロメテウス11連ガチャ",
+    "title": "超プロメテウス11連ガチャ",
     "startDate": "2026-09-24",
     "startTime": "15:00",
     "endDate": "2026-09-30",
@@ -109,6 +109,52 @@
       "lukaku-national-striker-2026",
       "doue-national-striker-2026",
       "alvarez-national-striker-2026"
+    ]
+  },
+  {
+    "id": "gacha-eternal-3rd-2026",
+    "title": "エターナルvol.3ピックアップ11連ガチャ",
+    "startDate": "2026-08-31",
+    "startTime": "15:00",
+    "endDate": "2026-09-14",
+    "endTime": "14:59",
+    "featuredPlayerIds": [
+      "costacurta-eternal-limited-2026",
+      "zanetti-eternal-limited-2026",
+      "scholes-eternal-limited-2026",
+      "villa-eternal-limited-2026",
+      "donadoni-eternal-limited-2026",
+      "yaya-toure-eternal-limited-2026",
+      "adriano-eternal-limited-2026"
+    ]
+  },
+  {
+    "id": "gacha-prometheus-aug-2026",
+    "title": "超プロメテウス11連ガチャ",
+    "startDate": "2026-08-27",
+    "startTime": "15:00",
+    "endDate": "2026-08-31",
+    "endTime": "14:59",
+    "featuredPlayerIds": [
+      "beckenbauer-legend-2026",
+      "iniesta-legend-2026"
+    ]
+  },
+  {
+    "id": "gacha-eternal-2nd-2026",
+    "title": "エターナルvol.2ピックアップ11連ガチャ",
+    "startDate": "2026-08-17",
+    "startTime": "15:00",
+    "endDate": "2026-08-31",
+    "endTime": "14:59",
+    "featuredPlayerIds": [
+      "inzaghi-eternal-limited-2026",
+      "sneijder-eternal-limited-2026",
+      "schmeichel-eternal-limited-2026",
+      "varane-eternal-limited-2026",
+      "guardiola-eternal-limited-2026",
+      "seedorf-eternal-limited-2026",
+      "park-ji-sung-eternal-limited-2026"
     ]
   }
 ]
