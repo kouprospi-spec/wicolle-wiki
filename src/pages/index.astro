@@ -176,7 +176,7 @@ function getPositionCategory(pos: string): string {
         ? player.customSense.join(',') 
         : (player.customSense || "");
 
-      const k = (player.status && player.status.kira_lv80 ? player.status.kira_lv80 : {}) as { [key: string]: number };
+      const k = (player.status && player.status.normal_lv80 ? player.status.normal_lv80 : {}) as { [key: string]: number };
 
       const ofe = Number(k.ofe) || 0;
       const tec = Number(k.tec) || 0;
