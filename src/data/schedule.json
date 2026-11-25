@@ -1,5 +1,23 @@
 [
   {
+    "title": "スキルマッチ／トレーニングマッチ全試合開放",
+    "type": "campaign",
+    "startDate": "2026-11-26",
+    "startTime": "15:00",
+    "endDate": "2026-12-04",
+    "endTime": "14:59",
+    "badgeText": "キャンペーン"
+  },
+  {
+    "title": "ブラックフライデーログインボーナス",
+    "type": "campaign",
+    "startDate": "2026-11-27",
+    "startTime": "03:00",
+    "endDate": "2026-12-04",
+    "endTime": "14:59",
+    "badgeText": "キャンペーン"
+  },
+  {
     "title": "ダイヤモンドスカウト",
     "type": "campaign",
     "startDate": "2026-11-23",
