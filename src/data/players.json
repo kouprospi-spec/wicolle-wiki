@@ -2948,5 +2948,30 @@
       "kira_lv70": { "ofe": "", "tec": "", "sta": "", "def": "", "pow": "", "spd": "" },
       "kira_lv80": { "ofe": "", "tec": "", "sta": "", "def": "", "pow": "", "spd": "" }
     }
+  },
+  {
+    "id": "kahn-legend-2026",
+    "name": "オリヴァー カーン",
+    "cardType": "レジェンド 2026",
+    "image": "/images/players/kahn-legend-2026.png",
+    "grade": 126,
+    "position": "GK",
+    "country": "ドイツ",
+    "birth": "1969-06-15",
+    "teamSkill": "スタメンディフェンス強化＋",
+    "positionsMain": ["GK"],
+    "positionsSub": [],
+    "type": "パワー",
+    "specialSkills": ["気迫の前進", "軍神"],
+    "selectSkills": ["対空防壁", "キングカーン"],
+    "customSense": "ブラインダー＋",
+    "status": {
+      "normal_lv1": { "ofe": 69, "tec": 276, "sta": 243, "def": 411, "pow": 289, "spd": 258 },
+      "normal_lv70": { "ofe": 299, "tec": 1206, "sta": 1062, "def": 1793, "pow": 1263, "spd": 1126 },
+      "normal_lv80": { "ofe": 568, "tec": 2292, "sta": 2019, "def": 3409, "pow": 2400, "spd": 2140 },
+      "kira_lv1": { "ofe": 76, "tec": 304, "sta": 267, "def": 452, "pow": 318, "spd": 284 },
+      "kira_lv70": { "ofe": 329, "tec": 1327, "sta": 1168, "def": 1972, "pow": 1389, "spd": 1239 },
+      "kira_lv80": { "ofe": 625, "tec": 2521, "sta": 2221, "def": 3750, "pow": 2640, "spd": 2354 }
+    }
   }
 ]

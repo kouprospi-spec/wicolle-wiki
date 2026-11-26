@@ -1,5 +1,17 @@
 [
   {
+    "id": "gacha-prometheus-nov-2026",
+    "title": "超プロメテウス11連ガチャ",
+    "startDate": "2026-11-26",
+    "startTime": "15:00",
+    "endDate": "2026-11-30",
+    "endTime": "14:59",
+    "featuredPlayerIds": [
+      "kahn-legend-2026",
+      "honda-legend-2026"
+    ]
+  },
+  {
     "id": "gacha-meteora-2nd-2026",
     "title": "METEORAピックアップ11連ガチャ",
     "startDate": "2026-11-16",
